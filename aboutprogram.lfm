@@ -1,0 +1,42 @@
+object aboutProgramForm: TaboutProgramForm
+  Left = 278
+  Height = 196
+  Top = 319
+  Width = 323
+  Caption = 'О программе'
+  ClientHeight = 0
+  ClientWidth = 0
+  LCLVersion = '1.6.0.4'
+  object AuthorLabel: TLabel
+    Left = 48
+    Height = 30
+    Top = 64
+    Width = 220
+    Caption = 'Могилёвкин Алексей'
+    Font.Height = -21
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+  end
+  object YearLabel: TLabel
+    Left = 200
+    Height = 21
+    Top = 104
+    Width = 36
+    Caption = '2016'
+    Font.Height = -16
+    Font.Style = [fsUnderline]
+    ParentColor = False
+    ParentFont = False
+  end
+  object GroupLabel: TLabel
+    Left = 64
+    Height = 21
+    Top = 104
+    Width = 53
+    Caption = 'Б8103а'
+    Font.Height = -16
+    ParentColor = False
+    ParentFont = False
+  end
+end
