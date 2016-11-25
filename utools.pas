@@ -58,8 +58,8 @@ type
     FLineWidth: Integer;
     FLineStyle: TFPPenStyle;
     procedure InitParams; override;
-    procedure ChangeLineWidth(Sender: TObject);
-    procedure ChangeLineStyle(Sender: TObject);
+    procedure ChangeLineWidth(AWidth: Integer);
+    procedure ChangeLineStyle(ALineStyle: TFPPenStyle);
   end;
 
   { TTwoPointFigureTool }
@@ -72,7 +72,7 @@ type
 
   TFilledFigureTool = class(TTwoPointFigureTool)
     FBrushStyle: TFPBrushStyle;
-    procedure ChangeBrushStyle(Sender: TObject);
+    procedure ChangeBrushStyle(ABrushStyle: TFPBrushStyle);
     procedure InitParams; override;
   end;
 
@@ -119,7 +119,7 @@ type
     FCorners: Integer;
     constructor Create;
     procedure InitParams; override;
-    procedure ChangeCornersNumber(Sender: TObject);
+    procedure ChangeCornersNumber(ACorners: Integer);
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton); override;
   end;
@@ -133,6 +133,7 @@ var
   Params: array of TParameter;
 
 { Misc }
+
 procedure RegisterTool(Tool: TTool);
 begin
   SetLength(Tools, Length(Tools) + 1);
@@ -154,11 +155,9 @@ begin
   FCorners := 3;
 end;
 
-procedure TRegularPolygonTool.ChangeCornersNumber(Sender: TObject);
+procedure TRegularPolygonTool.ChangeCornersNumber(ACorners: Integer);
 begin
-  with Sender as TSpinEdit do begin
-    FCorners := Value;
-  end;
+  FCorners := ACorners;
 end;
 
 procedure TRegularPolygonTool.MouseDown(AMousePos: TPoint; APenColor,
@@ -171,38 +170,35 @@ end;
 
 { TFilledFigureTool }
 
-procedure TFilledFigureTool.ChangeBrushStyle(Sender: TObject);
+procedure TFilledFigureTool.ChangeBrushStyle(ABrushStyle: TFPBrushStyle);
 begin
-  with Sender as TComboBox do begin
-    FBrushStyle := TFPBrushStyle(ItemIndex);
-  end;
+  FBrushStyle := ABrushStyle;
 end;
 
 procedure TFilledFigureTool.InitParams;
 begin
   Inherited;
-  AddParam(TFillStyleParameter.Create(@ChangeBrushStyle));
+  AddParam(TBrushStyleParameter.Create(@ChangeBrushStyle));
+  FBrushStyle := bsSolid;
 end;
 
 { TFigureTool }
 procedure TFigureTool.InitParams;
 begin
-  {ЭТО ВООБЩЕ ЗАКОННО ДЕЛАТЬ?}
-  AddParam(TBorderWidthParameter.Create(@ChangeLineWidth));
-  AddParam(TBorderStyleParameter.Create(@ChangeLineStyle));
+  AddParam(TLineWidthParameter.Create(@ChangeLineWidth));
+  AddParam(TLineStyleParameter.Create(@ChangeLineStyle));
   FLineWidth := 3;
+  FLineStyle := psSolid;
 end;
 
-procedure TFigureTool.ChangeLineWidth(Sender: TObject);
+procedure TFigureTool.ChangeLineWidth(AWidth: Integer);
 begin
-  FLineWidth := (Sender as TSpinEdit).Value;
+  FLineWidth := AWidth;
 end;
 
-procedure TFigureTool.ChangeLineStyle(Sender: TObject);
+procedure TFigureTool.ChangeLineStyle(ALineStyle: TFPPenStyle);
 begin
-  with Sender as TComboBox do begin
-    FLineStyle := TFPPenStyle(ItemIndex);
-  end;
+  FLineStyle := ALineStyle;
 end;
 
 { TMagnifierTool }

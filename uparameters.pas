@@ -5,12 +5,15 @@ unit UParameters;
 interface
 
 uses
-  Classes, math, Controls, SysUtils, UFigures, Graphics, UTransform, StdCtrls,
-  ExtCtrls, LCLClasses, Spin;
+  Classes, Controls, SysUtils, Graphics, UTransform, StdCtrls,
+  ExtCtrls, LCLClasses, Spin, FPCanvas;
 
 type
 
-  TParamChange = procedure(Sender: TObject) of Object;
+  TLineWidthChange = procedure(AWidth: Integer) of Object;
+  TLineStyleChange = procedure(ALineStyle: TFPPenStyle) of Object;
+  TBrushStyleChange = procedure(ABrushStyle: TFPBrushStyle) of Object;
+  TCornersNumberChange = procedure(ACornersNumber: Integer) of Object;
 
   { TParameter }
 
@@ -21,57 +24,81 @@ type
     destructor Destroy; override;
   end;
 
-  { TBorderWidthParameter }
+  { TLineWidthParameter }
 
-  TBorderWidthParameter = class(TParameter)
-    constructor Create(AonChange: TParamChange);
+  TLineWidthParameter = class(TParameter)
+    FLineWidthChange: TLineWidthChange;
+    procedure OnLineWidthChange(Sender: TObject);
+    constructor Create(ALineWidthChange: TLineWidthChange);
   end;
 
-  { TBorderStyleParameter }
+  { TLineStyleParameter }
 
-  TBorderStyleParameter = class(TParameter)
-    constructor Create(AonChange: TParamChange);
+  TLineStyleParameter = class(TParameter)
+    FLineStyleChange: TLineStyleChange;
+    procedure OnLineStyleChange(Sender: TObject);
+    constructor Create(ALineStyleChange: TLineStyleChange);
   end;
 
-  { TFillStyleParameter }
+  { TBrushStyleParameter }
 
-  TFillStyleParameter = class(TParameter)
-    constructor Create(AonChange: TParamChange);
+  TBrushStyleParameter = class(TParameter)
+    FBrushStyleChange: TBrushStyleChange;
+    procedure OnBrushStyleChange(Sender: TObject);
+    constructor Create(ABrushStyleChange: TBrushStyleChange);
   end;
 
   { TCornersNumberParameter }
 
   TCornersNumberParameter = class(TParameter)
-    constructor Create(AonChange: TParamChange);
+    FCornersNumbersChange: TCornersNumberChange;
+    procedure OnCornersNumberChange(Sender: TObject);
+    constructor Create(ACornersNumbersChange: TCornersNumberChange);
   end;
 
 implementation
 
 { TCornersNumberParameter }
 
-constructor TCornersNumberParameter.Create(AonChange: TParamChange);
+procedure TCornersNumberParameter.OnCornersNumberChange(Sender: TObject);
 begin
-  Inherited Create;
-  FLabel.Caption := 'Количество углов';
-  FComponent := TSpinEdit.Create(nil);
-  with FComponent as TSpinEdit do begin
-      MaxValue := 15;
-      MinValue := 3;
-      Value := 3;
-      Font.Size := 11;
-      Alignment := taRightJustify;
-      Width := 64;
-      OnChange := AonChange;
+  with Sender as TSpinEdit do begin
+    FCornersNumbersChange(Value);
   end;
 end;
 
-{ TFillStyleParameter }
-
-constructor TFillStyleParameter.Create(AonChange: TParamChange);
+constructor TCornersNumberParameter.Create(
+  ACornersNumbersChange: TCornersNumberChange);
 begin
   Inherited Create;
-  FLabel.Caption := 'Стиль заливки';
+  FCornersNumbersChange := ACornersNumbersChange;
+  FLabel.Caption := 'Количество углов';
+  FComponent := TSpinEdit.Create(nil);
+  with FComponent as TSpinEdit do begin
+    MaxValue := 15;
+    MinValue := 3;
+    Value := 3;
+    Font.Size := 11;
+    Alignment := taRightJustify;
+    Width := 64;
+    OnChange := @OnCornersNumberChange;
+  end;
+end;
 
+{ TBrushStyleParameter }
+
+procedure TBrushStyleParameter.OnBrushStyleChange(Sender: TObject);
+begin
+  with Sender as TComboBox do begin
+    FBrushStyleChange(TFPBrushStyle(ItemIndex));
+  end;
+end;
+
+constructor TBrushStyleParameter.Create(ABrushStyleChange: TBrushStyleChange);
+begin
+  Inherited Create;
+  FBrushStyleChange := ABrushStyleChange;
+  FLabel.Caption := 'Стиль заливки';
   FComponent := TComboBox.Create(nil);
   with FComponent as TComboBox do begin
     Items.Add('Сплошная');
@@ -85,17 +112,24 @@ begin
     Font.Size := 10;
     Width := 130;
     ItemIndex := 0;
-    OnChange := AonChange;
+    OnChange := @OnBrushStyleChange;
   end;
 end;
 
-{ TBorderStyleParameter }
+{ TLineStyleParameter }
 
-constructor TBorderStyleParameter.Create(AonChange: TParamChange);
+procedure TLineStyleParameter.OnLineStyleChange(Sender: TObject);
+begin
+  with Sender as TComboBox do begin
+    FLineStyleChange(TFPPenStyle(ItemIndex));
+  end;
+end;
+
+constructor TLineStyleParameter.Create(ALineStyleChange: TLineStyleChange);
 begin
   Inherited Create;
+  FLineStyleChange := ALineStyleChange;
   FLabel.Caption := 'Стиль линии';
-
   FComponent := TComboBox.Create(nil);
   with FComponent as TComboBox do begin
     Items.Add('─────');
@@ -103,13 +137,12 @@ begin
     Items.Add('• • • • • • • • •');
     Items.Add('─ • ─ • ─ •');
     Items.Add('─ • • ─ • •');
-    AutoComplete := False;
-
+    Style := csOwnerDrawFixed;
     Font.Bold := True;
     Font.Size := 10;
     Width := 130;
     ItemIndex := 0;
-    OnChange := AonChange;
+    OnChange := @OnLineStyleChange;
   end;
 end;
 
@@ -129,22 +162,27 @@ begin
   inherited Destroy;
 end;
 
-{ TBorderWidthParameter }
+{ TLineWidthParameter }
 
-constructor TBorderWidthParameter.Create(AonChange: TParamChange);
+procedure TLineWidthParameter.OnLineWidthChange(Sender: TObject);
+begin
+  FLineWidthChange((Sender as TSpinEdit).Value);
+end;
+
+constructor TLineWidthParameter.Create(ALineWidthChange: TLineWidthChange);
 begin
   Inherited Create;
-
+  FLineWidthChange := ALineWidthChange;
   FLabel.Caption := 'Толщина линии';
   FComponent := TSpinEdit.Create(nil);
   with FComponent as TSpinEdit do begin
-      MaxValue := 500;
-      MinValue := 1;
-      Value := 3;
-      Font.Size := 11;
-      Alignment := taRightJustify;
-      Width := 64;
-      OnChange := AonChange;
+    MaxValue := 500;
+    MinValue := 1;
+    Value := 3;
+    Font.Size := 11;
+    Alignment := taRightJustify;
+    Width := 64;
+    OnChange := @OnLineWidthChange;
   end;
 end;
 
