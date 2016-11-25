@@ -36,6 +36,8 @@ type
 
   TLineStyleParameter = class(TParameter)
     FLineStyleChange: TLineStyleChange;
+    procedure OnDrawLineStyleItem(Control: TWinControl; Index: Integer;
+      ARect: TRect; State: TOwnerDrawState);
     procedure OnLineStyleChange(Sender: TObject);
     constructor Create(ALineStyleChange: TLineStyleChange);
   end;
@@ -44,6 +46,8 @@ type
 
   TBrushStyleParameter = class(TParameter)
     FBrushStyleChange: TBrushStyleChange;
+    procedure OnDrawBrushStyleItem(Control: TWinControl; Index: Integer;
+      ARect: TRect; State: TOwnerDrawState);
     procedure OnBrushStyleChange(Sender: TObject);
     constructor Create(ABrushStyleChange: TBrushStyleChange);
   end;
@@ -87,6 +91,20 @@ end;
 
 { TBrushStyleParameter }
 
+procedure TBrushStyleParameter.OnDrawBrushStyleItem(
+  Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
+begin
+  with Control as TComboBox do begin
+    {TODO: не отображается прозачная заливка}
+    Canvas.FillRect(ARect);
+    Canvas.Brush.Style := TFPBrushStyle(Index);
+    Canvas.Brush.Color := clREd;
+    Canvas.FillRect(ARect);
+    Canvas.Font.Color := clBlack;
+    Canvas.TextOut(ARect.Left, ARect.Top, Items[Index]);
+  end;
+end;
+
 procedure TBrushStyleParameter.OnBrushStyleChange(Sender: TObject);
 begin
   with Sender as TComboBox do begin
@@ -95,28 +113,42 @@ begin
 end;
 
 constructor TBrushStyleParameter.Create(ABrushStyleChange: TBrushStyleChange);
+var i: Integer;
 begin
   Inherited Create;
   FBrushStyleChange := ABrushStyleChange;
   FLabel.Caption := 'Стиль заливки';
   FComponent := TComboBox.Create(nil);
   with FComponent as TComboBox do begin
-    Items.Add('Сплошная');
-    Items.Add('Без заливки');
-    Items.Add('Горизонтальная');
-    Items.Add('Вертикальная');
-    Items.Add('Диагональная 1');
-    Items.Add('Диагональная 2');
-    Items.Add('Крестом');
-    Items.Add('Наклонным крестом');
+    for i := 0 to 7 do Items.Add(' ');
     Font.Size := 10;
     Width := 130;
     ItemIndex := 0;
+    ReadOnly := True;
+    AutoSelect := False;
+    ItemHeight := 20;
+    Style := csOwnerDrawFixed;
+    OnDrawItem := @OnDrawBrushStyleItem;
     OnChange := @OnBrushStyleChange;
   end;
 end;
 
 { TLineStyleParameter }
+
+procedure TLineStyleParameter.OnDrawLineStyleItem(Control: TWinControl;
+  Index: Integer; ARect: TRect; State: TOwnerDrawState);
+begin
+  with Control as TComboBox, ARect do begin
+    {TODO: как-то не работает}
+    Canvas.FillRect(ARect);
+    Canvas.Pen.Style := TFPPenStyle(Index);
+    Canvas.Pen.Width := 5;
+    Canvas.Pen.Color := clBlack;
+    Canvas.Line(Left, (Bottom - Top) div 2, Right, (Bottom - Top) div 2);
+    Font.Color := clBlack;
+    Canvas.TextOut(Left,Top, Items[index]);
+  end;
+end;
 
 procedure TLineStyleParameter.OnLineStyleChange(Sender: TObject);
 begin
@@ -126,22 +158,22 @@ begin
 end;
 
 constructor TLineStyleParameter.Create(ALineStyleChange: TLineStyleChange);
+var i: Integer;
 begin
   Inherited Create;
   FLineStyleChange := ALineStyleChange;
   FLabel.Caption := 'Стиль линии';
   FComponent := TComboBox.Create(nil);
   with FComponent as TComboBox do begin
-    Items.Add('─────');
-    Items.Add('─ ─ ─ ─ ─');
-    Items.Add('• • • • • • • • •');
-    Items.Add('─ • ─ • ─ •');
-    Items.Add('─ • • ─ • •');
+    for i := 0 to 4 do Items.Add(' ');
     Style := csOwnerDrawFixed;
     Font.Bold := True;
+    ReadOnly := True;
     Font.Size := 10;
     Width := 130;
     ItemIndex := 0;
+    ItemHeight := 20;
+    OnDrawItem := @OnDrawLineStyleItem;
     OnChange := @OnLineStyleChange;
   end;
 end;
