@@ -38,7 +38,7 @@ type
     FigureBounds: TDoubleRect;
     constructor Create(ADoublePoint: TDoublePoint; APenColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer);
-    procedure SetSecondPoint(ADoublePoint: TDoublePoint);
+    procedure SetSecondPoint(ADoublePoint: TDoublePoint); virtual;
     function GetBounds: TDoubleRect; override;
   end;
 
@@ -78,12 +78,18 @@ type
 
   { TRegularPolygon }
 
-  TRegularPolygon = class(TFilledFigure)
+  TRegularPolygon = class(TFigure)
     FCorners: Integer;
-    Vertexes: array of TDoublePoint;
+    FVertexes: array of TDoublePoint;
+    FBrushColor: TColor;
+    FCenter: TDoublePoint;
+    FCirclePoint: TDoublePoint;
+    FFillStyle: TFPBrushStyle;
     constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle; ACorners: Integer);
     procedure DrawFigure(Canvas: TCanvas); override;
+    procedure Draw(Canvas: TCanvas); override;
+    procedure SetSecondPoint(ADoublePoint: TDoublePoint);
     function GetBounds: TDoubleRect; override;
   end;
 
@@ -119,32 +125,43 @@ constructor TRegularPolygon.Create(ADoublePoint: TDoublePoint; APenColor,
   ABrushColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer;
   AFillStyle: TFPBrushStyle; ACorners: Integer);
 begin
-  Inherited Create(ADoublePoint, APenColor, ABrushColor, APenStyle, AThickness, AFillStyle);
+  Inherited Create(APenColor, APenStyle, AThickness);
+  FCenter := ADoublePoint;
+  FBrushColor := ABrushColor;
+  FFillStyle := AFillStyle;
   FCorners := ACorners;
 end;
 
 procedure TRegularPolygon.DrawFigure(Canvas: TCanvas);
 var
   i: Integer;
-  WrldFigureCenter: TDoublePoint;
   Radius: Double;
 begin
-  WrldFigureCenter := FigureBounds.TopLeft +
-    (FigureBounds.BottomRight - FigureBounds.TopLeft) / 2;
-  Radius := Min(
-    FigureBounds.Right - WrldFigureCenter.x, FigureBounds.Bottom - WrldFigureCenter.Y);
+  Radius := sqrt((FCirclePoint.X - FCenter.X)**2 + (FCirclePoint.Y - FCenter.Y)**2);
   { TODO : Улучшить алгоритм }
-  SetLength(Vertexes, FCorners);
+  SetLength(FVertexes, FCorners);
   for i := 0 to FCorners - 1 do begin
-    Vertexes[i].x := WrldFigureCenter.X + (Radius*sin(i * 2 * pi / FCorners));
-    Vertexes[i].y := WrldFigureCenter.Y + (Radius*cos(i * 2 * pi / FCorners));
+    FVertexes[i].x := FCenter.X + (Radius*sin(i * 2 * pi / FCorners));
+    FVertexes[i].y := FCenter.Y + (Radius*cos(i * 2 * pi / FCorners));
   end;
-  Canvas.Polygon(WorldVertexesToDispCoord(Vertexes));
+  Canvas.Polygon(WorldVertexesToDispCoord(FVertexes));
+end;
+
+procedure TRegularPolygon.Draw(Canvas: TCanvas);
+begin
+  Canvas.Brush.Color := FBrushColor;
+  Canvas.Brush.Style := FFillStyle;
+  Inherited;
+end;
+
+procedure TRegularPolygon.SetSecondPoint(ADoublePoint: TDoublePoint);
+begin
+  FCirclePoint := ADoublePoint;
 end;
 
 function TRegularPolygon.GetBounds: TDoubleRect;
 begin
-  Result := GetVertexesBound(Vertexes);
+  Result := GetVertexesBound(FVertexes);
 end;
 
 
@@ -163,7 +180,7 @@ procedure TFilledFigure.Draw(Canvas: TCanvas);
 begin
   Canvas.Brush.Color := BrushColor;
   Canvas.Brush.Style := BrushStyle;
-  inherited Draw(canvas);
+  Inherited;
 end;
 
 { TFigure }

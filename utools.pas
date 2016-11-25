@@ -120,6 +120,7 @@ type
     constructor Create;
     procedure InitParams; override;
     procedure ChangeCornersNumber(ACorners: Integer);
+    procedure MouseMove(AMousePos: TPoint); override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton); override;
   end;
@@ -158,6 +159,11 @@ end;
 procedure TRegularPolygonTool.ChangeCornersNumber(ACorners: Integer);
 begin
   FCorners := ACorners;
+end;
+
+procedure TRegularPolygonTool.MouseMove(AMousePos: TPoint);
+begin
+  (FFigure as TRegularPolygon).SetSecondPoint(DispToWorldCoord(AMousePos));
 end;
 
 procedure TRegularPolygonTool.MouseDown(AMousePos: TPoint; APenColor,
