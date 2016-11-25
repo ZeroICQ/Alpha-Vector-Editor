@@ -1,4 +1,7 @@
 lib/
+img/source
+backup/
 *.exe
 *.res
 *.lps
+*.bak
