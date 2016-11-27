@@ -35,61 +35,74 @@ type
   { TTwoPointFigure }
 
   TTwoPointFigure = class(TFigure)
-    FigureBounds: TDoubleRect;
-    constructor Create(ADoublePoint: TDoublePoint; APenColor: TColor;
-      APenStyle: TFPPenStyle; AThickness: Integer);
-    procedure SetSecondPoint(ADoublePoint: TDoublePoint); virtual;
-    function GetBounds: TDoubleRect; override;
+    procedure SetSecondPoint(ADoublePoint: TDoublePoint); virtual; abstract;
+    constructor Create(APenColor: TColor; APenStyle: TFPPenStyle;
+      AThickness: Integer);
   end;
 
   { TFilledFigure }
 
   TFilledFigure = class(TTwoPointFigure)
-    BrushColor: TColor;
-    BrushStyle: TFPBrushStyle;
+    FBrushColor: TColor;
+    FBrushStyle: TFPBrushStyle;
+    constructor Create(APenColor, ABrushColor: TColor; APenStyle: TFPPenStyle;
+      AThickness: Integer; AFillStyle: TFPBrushStyle);
+    procedure Draw(Canvas: TCanvas); override;
+  end;
+
+
+  { TInscribedFigure }
+
+  TInscribedFigure = class(TFilledFigure)
+    FigureBounds: TDoubleRect;
+    function GetBounds: TDoubleRect; override;
+    procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
     constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle);
-    procedure Draw(Canvas: TCanvas); override;
   end;
 
   { TRectangle }
 
-  TRectangle = class(TFilledFigure)
+  TRectangle = class(TInscribedFigure)
     procedure DrawFigure(Canvas: TCanvas); override;
   end;
 
   { TLine }
 
   TLine = class(TTwoPointFigure)
+    FStartPoint: TDoublePoint;
+    FEndPoint: TDoublePoint;
+    constructor Create(AMousePos: TDoublePoint; APenColor: TColor;
+      ALineStyle: TFPPenStyle; ALineWidth: Integer);
+    procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
+    function GetBounds: TDoubleRect; override;
     procedure DrawFigure(Canvas: TCanvas); override;
   end;
 
   { TEllipse }
 
-  TEllipse = class(TFilledFigure)
+  TEllipse = class(TInscribedFigure)
     procedure DrawFigure(Canvas: TCanvas); override;
   end;
 
   { TRectangleLine }
 
-  TRectangleLine = class(TTwoPointFigure)
+  TRectangleLine = class(TInscribedFigure)
     procedure DrawFigure(Canvas: TCanvas); override;
   end;
 
   { TRegularPolygon }
 
-  TRegularPolygon = class(TFigure)
+  TRegularPolygon = class(TFilledFigure)
     FCorners: Integer;
     FVertexes: array of TDoublePoint;
-    FBrushColor: TColor;
     FCenter: TDoublePoint;
     FCirclePoint: TDoublePoint;
-    FFillStyle: TFPBrushStyle;
     constructor Create(ACenterPoint: TDoublePoint; APenColor, ABrushColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle; ACorners: Integer);
     procedure DrawFigure(Canvas: TCanvas); override;
     procedure Draw(Canvas: TCanvas); override;
-    procedure SetSecondPoint(ADoublePoint: TDoublePoint);
+    procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
     function GetBounds: TDoubleRect; override;
   end;
 
@@ -137,16 +150,39 @@ begin
   Result := DoubleRect(LeftX, TopY, RightX, BottomY);
 end;
 
+{ TInscribedFigure }
+
+function TInscribedFigure.GetBounds: TDoubleRect;
+begin
+  with Result do begin
+    Top := Min(FigureBounds.Top, FigureBounds.Bottom);
+    Left := Min(FigureBounds.Left, FigureBounds.Right);
+    Bottom := Max(FigureBounds.Top, FigureBounds.Bottom);
+    Right := Max(FigureBounds.Left, FigureBounds.Right);
+  end;
+end;
+
+procedure TInscribedFigure.SetSecondPoint(ADoublePoint: TDoublePoint);
+begin
+  FigureBounds := DoubleRect(FigureBounds.TopLeft, ADoublePoint);
+end;
+
+constructor TInscribedFigure.Create(ADoublePoint: TDoublePoint; APenColor,
+  ABrushColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer;
+  AFillStyle: TFPBrushStyle);
+begin
+  Inherited Create(APenColor, ABrushColor, APenStyle, AThickness, AFillStyle);
+  FigureBounds := DoubleRect(ADoublePoint, ADoublePoint);
+end;
+
 { TRegularPolygon }
 
 constructor TRegularPolygon.Create(ACenterPoint: TDoublePoint; APenColor,
   ABrushColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer;
   AFillStyle: TFPBrushStyle; ACorners: Integer);
 begin
-  Inherited Create(APenColor, APenStyle, AThickness);
+  Inherited Create(APenColor, ABrushColor, APenStyle, AThickness, AFillStyle);
   FCenter := ACenterPoint;
-  FBrushColor := ABrushColor;
-  FFillStyle := AFillStyle;
   FCorners := ACorners;
 end;
 
@@ -171,7 +207,7 @@ end;
 procedure TRegularPolygon.Draw(Canvas: TCanvas);
 begin
   Canvas.Brush.Color := FBrushColor;
-  Canvas.Brush.Style := FFillStyle;
+  Canvas.Brush.Style := FBrushStyle;
   Inherited;
 end;
 
@@ -188,19 +224,18 @@ end;
 
 { TFilledFigure }
 
-constructor TFilledFigure.Create(ADoublePoint: TDoublePoint; APenColor,
-  ABrushColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer;
-  AFillStyle: TFPBrushStyle);
+constructor TFilledFigure.Create(APenColor, ABrushColor: TColor;
+  APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle);
 begin
-  Inherited Create(ADoublePoint, APenColor, APenStyle, AThickness);
-  BrushColor := ABrushColor;
-  BrushStyle := AFillStyle;
+  Inherited Create(APenColor, APenStyle, AThickness);
+  FBrushColor := ABrushColor;
+  FBrushStyle := AFillStyle;
 end;
 
 procedure TFilledFigure.Draw(Canvas: TCanvas);
 begin
-  Canvas.Brush.Color := BrushColor;
-  Canvas.Brush.Style := BrushStyle;
+  Canvas.Brush.Color := FBrushColor;
+  Canvas.Brush.Style := FBrushStyle;
   Inherited;
 end;
 
@@ -223,26 +258,10 @@ end;
 
 { TTwoPointFigure }
 
-constructor TTwoPointFigure.Create(ADoublePoint: TDoublePoint;
-  APenColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer);
+constructor TTwoPointFigure.Create(APenColor: TColor; APenStyle: TFPPenStyle;
+  AThickness: Integer);
 begin
   inherited Create(APenColor, APenStyle, AThickness);
-  FigureBounds := DoubleRect(ADoublePoint, ADoublePoint);
-end;
-
-procedure TTwoPointFigure.SetSecondPoint(ADoublePoint: TDoublePoint);
-begin
-  FigureBounds := DoubleRect(FigureBounds.TopLeft, ADoublePoint);
-end;
-
-function TTwoPointFigure.GetBounds: TDoubleRect;
-begin
-  with Result do begin
-    Top := Min(FigureBounds.Top, FigureBounds.Bottom);
-    Left := Min(FigureBounds.Left, FigureBounds.Right);
-    Bottom := Max(FigureBounds.Top, FigureBounds.Bottom);
-    Right := Max(FigureBounds.Left, FigureBounds.Right);
-  end;
 end;
 
 { TPolyline }
@@ -281,10 +300,32 @@ begin
   Canvas.Ellipse(WorldToDispCoord(FigureBounds));
 end;
 
+constructor TLine.Create(AMousePos: TDoublePoint; APenColor: TColor;
+  ALineStyle: TFPPenStyle; ALineWidth: Integer);
+begin
+  Inherited Create(APenColor, ALineStyle, ALineWidth);
+  FStartPoint := AMousePos;
+end;
+
+procedure TLine.SetSecondPoint(ADoublePoint: TDoublePoint);
+begin
+  FEndPoint := ADoublePoint;
+end;
+
+function TLine.GetBounds: TDoubleRect;
+begin
+  with Result do begin
+    Top := Min(FStartPoint.Y, FEndPoint.Y);
+    Left := Min(FStartPoint.X, FEndPoint.X);
+    Bottom := Max(FStartPoint.Y, FEndPoint.Y);
+    Right := Max(FStartPoint.X, FEndPoint.X);
+  end;
+end;
+
 { TLine }
 procedure TLine.DrawFigure(Canvas: TCanvas);
 begin
-  Canvas.Line(WorldToDispCoord(FigureBounds));
+  Canvas.Line(WorldToDispCoord(FStartPoint), WorldToDispCoord(FEndPoint));
 end;
 
 { TRectangleLine }

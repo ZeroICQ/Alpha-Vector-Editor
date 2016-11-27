@@ -225,7 +225,7 @@ begin
   FIsSelectingArea := False;
   FMouseButton := AButton;
   FFigure := TRectangleLine.Create(
-    DispToWorldCoord(AMousePos), clBlack, psSolid, 1);
+  DispToWorldCoord(AMousePos), APenColor, ABrushColor, psSolid, 1, bsClear);
   FStartingPoint := DispToWorldCoord(AMousePos);
 end;
 
