@@ -66,7 +66,29 @@ type
       AValue: Integer);
   end;
 
+  procedure ShowParams(APanel: TPanel);
+
+var
+  Params: array of TParameter;
+
 implementation
+
+{ Misc }
+
+procedure ShowParams(APanel: TPanel);
+var i: Integer;
+begin
+  for i := 0 to High(Params) do begin
+    with Params[i] do begin
+      FLabel.Top := i * 50;
+      FLabel.Left := 2;
+      FLabel.Parent := APanel;
+      FComponent.Top := i * 50 + FLabel.ClientHeight + 5;
+      FComponent.Left := APanel.ClientWidth - FComponent.ClientWidth;
+      FComponent.Parent := APanel;
+    end;
+  end;
+end;
 
 { TFactorParameter }
 

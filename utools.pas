@@ -19,7 +19,6 @@ type
     procedure Init(APanel: TPanel);
     procedure InitParams; virtual; abstract;
     procedure AddParam(AParam: TParameter);
-    procedure ShowParams;
     function GetFigure: TFigure;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton); virtual; abstract;
@@ -142,9 +141,6 @@ var
   Tools: array of TTool;
 
 implementation
-
-var
-  Params: array of TParameter;
 
 { Misc }
 
@@ -347,21 +343,6 @@ begin
   Params[High(Params)] := AParam;
 end;
 
-procedure TTool.ShowParams;
-var i: Integer;
-begin
-  for i := 0 to High(Params) do begin
-      with Params[i] do begin
-        FLabel.Top := i * 50;
-        FLabel.Left := 2;
-        FLabel.Parent := FPanel;
-        FComponent.Top := i * 50 + FLabel.ClientHeight + 5;
-        FComponent.Left := FPanel.ClientWidth - FComponent.ClientWidth;
-        FComponent.Parent := FPanel;
-      end;
-  end;
-end;
-
 procedure TTool.Init(APanel: TPanel);
 var i: Integer;
 begin
@@ -371,7 +352,7 @@ begin
   Params := Nil;
   FPanel := APanel;
   InitParams;
-  ShowParams;
+  ShowParams(APanel);;
 end;
 
 function TTool.GetFigure: TFigure;
