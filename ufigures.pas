@@ -327,11 +327,14 @@ begin
   Canvas.Ellipse(WorldToDispCoord(FigureBounds));
 end;
 
+{ TLine }
+
 constructor TLine.Create(AMousePos: TDoublePoint; APenColor: TColor;
   ALineStyle: TFPPenStyle; ALineWidth: Integer);
 begin
   Inherited Create(APenColor, ALineStyle, ALineWidth);
   FStartPoint := AMousePos;
+  FEndPoint := AMousePos;
 end;
 
 procedure TLine.SetSecondPoint(ADoublePoint: TDoublePoint);
@@ -349,7 +352,6 @@ begin
   end;
 end;
 
-{ TLine }
 procedure TLine.DrawFigure(Canvas: TCanvas);
 begin
   Canvas.Line(WorldToDispCoord(FStartPoint), WorldToDispCoord(FEndPoint));
