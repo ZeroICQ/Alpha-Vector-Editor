@@ -14,6 +14,7 @@ type
   TLineStyleChange = procedure(ALineStyle: TFPPenStyle) of Object;
   TBrushStyleChange = procedure(ABrushStyle: TFPBrushStyle) of Object;
   TCornersNumberChange = procedure(ACornersNumber: Integer) of Object;
+  TFactorChange = procedure(AFactor: Integer) of Object;
 
   { TParameter }
 
@@ -60,7 +61,63 @@ type
     constructor Create(ACornersNumbersChange: TCornersNumberChange);
   end;
 
+  { TFactorParameter }
+
+  TFactorParameter = class(TParameter)
+    FFactorChange: TFactorChange;
+    procedure OnFactorChange(Sender: TObject);
+    constructor Create(ACaption: String; AFactorChange: TFactorChange;
+      AValue: Integer);
+  end;
+
+  procedure ShowParams(APanel: TPanel);
+
+var
+  Params: array of TParameter;
+
 implementation
+
+{ Misc }
+
+procedure ShowParams(APanel: TPanel);
+var i: Integer;
+begin
+  for i := 0 to High(Params) do begin
+    with Params[i] do begin
+      FLabel.Top := i * 50;
+      FLabel.Left := 2;
+      FLabel.Parent := APanel;
+      FComponent.Top := i * 50 + FLabel.ClientHeight + 5;
+      FComponent.Left := APanel.ClientWidth - FComponent.ClientWidth;
+      FComponent.Parent := APanel;
+    end;
+  end;
+end;
+
+{ TFactorParameter }
+
+procedure TFactorParameter.OnFactorChange(Sender: TObject);
+begin
+  FFactorChange((Sender as TSpinEdit).Value);
+end;
+
+constructor TFactorParameter.Create(ACaption: String;
+  AFactorChange: TFactorChange; AValue: Integer);
+begin
+  Inherited Create;
+  FFactorChange := AFactorChange;
+  FLabel.Caption := ACaption;
+  FComponent := TSpinEdit.Create(nil);
+  with FComponent as TSpinEdit do begin
+    MaxValue := 1000;
+    MinValue := 1;
+    Value := AValue;
+    Font.Size := 11;
+    Alignment := taRightJustify;
+    Width := 130;
+    OnChange := @OnFactorChange;
+  end;
+end;
 
 { TCornersNumberParameter }
 

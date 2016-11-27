@@ -19,7 +19,6 @@ type
     procedure Init(APanel: TPanel);
     procedure InitParams; virtual; abstract;
     procedure AddParam(AParam: TParameter);
-    procedure ShowParams;
     function GetFigure: TFigure;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton); virtual; abstract;
@@ -95,6 +94,19 @@ type
       AButton: TMouseButton); override;
   end;
 
+  { TRoundRectangleTool }
+
+  TRoundRectangleTool = class(TFilledFigureTool)
+    FFactorX: Integer;
+    FFactorY: Integer;
+    constructor Create;
+    procedure InitParams; override;
+    procedure ChangeXFactor(AFactor: Integer);
+    procedure ChangeYFactor(AFactor: Integer);
+    procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
+      AButton: TMouseButton); override;
+  end;
+
   { TLineTool }
 
   TLineTool = class(TTwoPointFigureTool)
@@ -120,6 +132,7 @@ type
     constructor Create;
     procedure InitParams; override;
     procedure ChangeCornersNumber(ACorners: Integer);
+    procedure MouseMove(AMousePos: TPoint); override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton); override;
   end;
@@ -129,15 +142,47 @@ var
 
 implementation
 
-var
-  Params: array of TParameter;
-
 { Misc }
 
 procedure RegisterTool(Tool: TTool);
 begin
   SetLength(Tools, Length(Tools) + 1);
   Tools[High(Tools)] := Tool;
+end;
+
+{ TRoundRectangleTool }
+
+constructor TRoundRectangleTool.Create;
+begin
+  Inherited;
+  FIcon := 'img/roundrectangle.bmp';
+end;
+
+procedure TRoundRectangleTool.InitParams;
+begin
+  Inherited;
+  FFactorX := 30;
+  FFactorY := 30;
+  AddParam(TFactorParameter.Create('Скругление по X: ', @ChangeXFactor, FFactorX));
+  AddParam(TFactorParameter.Create('Скругление по Y: ', @ChangeYFactor, FFactorY));
+
+end;
+
+procedure TRoundRectangleTool.ChangeXFactor(AFactor: Integer);
+begin
+  FFactorX := AFactor;
+end;
+
+procedure TRoundRectangleTool.ChangeYFactor(AFactor: Integer);
+begin
+  FFactorY := AFactor;
+end;
+
+procedure TRoundRectangleTool.MouseDown(AMousePos: TPoint; APenColor,
+  ABrushColor: TColor; AButton: TMouseButton);
+begin
+  FFigure := TRoundRectangle.Create(DispToWorldCoord(AMousePos), APenColor,
+  ABrushColor, FLineStyle, FLineWidth, FBrushStyle, FFactorX, FFactorY);
 end;
 
 { TRegularPolygonTool }
@@ -158,6 +203,11 @@ end;
 procedure TRegularPolygonTool.ChangeCornersNumber(ACorners: Integer);
 begin
   FCorners := ACorners;
+end;
+
+procedure TRegularPolygonTool.MouseMove(AMousePos: TPoint);
+begin
+  (FFigure as TRegularPolygon).SetSecondPoint(DispToWorldCoord(AMousePos));
 end;
 
 procedure TRegularPolygonTool.MouseDown(AMousePos: TPoint; APenColor,
@@ -219,7 +269,7 @@ begin
   FIsSelectingArea := False;
   FMouseButton := AButton;
   FFigure := TRectangleLine.Create(
-    DispToWorldCoord(AMousePos), clBlack, psSolid, 1);
+  DispToWorldCoord(AMousePos), APenColor, ABrushColor, psSolid, 1, bsClear);
   FStartingPoint := DispToWorldCoord(AMousePos);
 end;
 
@@ -293,21 +343,6 @@ begin
   Params[High(Params)] := AParam;
 end;
 
-procedure TTool.ShowParams;
-var i: Integer;
-begin
-  for i := 0 to High(Params) do begin
-      with Params[i] do begin
-        FLabel.Top := i * 50;
-        FLabel.Left := 2;
-        FLabel.Parent := FPanel;
-        FComponent.Top := i * 50 + FLabel.ClientHeight + 5;
-        FComponent.Left := FPanel.ClientWidth - FComponent.ClientWidth;
-        FComponent.Parent := FPanel;
-      end;
-  end;
-end;
-
 procedure TTool.Init(APanel: TPanel);
 var i: Integer;
 begin
@@ -317,7 +352,7 @@ begin
   Params := Nil;
   FPanel := APanel;
   InitParams;
-  ShowParams;
+  ShowParams(APanel);;
 end;
 
 function TTool.GetFigure: TFigure;
@@ -423,6 +458,7 @@ RegisterTool(THandTool.Create);
 RegisterTool(TMagnifierTool.Create);
 RegisterTool(TPolylineTool.Create);
 RegisterTool(TRectangleTool.Create);
+RegisterTool(TRoundRectangleTool.Create);
 RegisterTool(TEllipseTool.Create);
 RegisterTool(TLineTool.Create);
 RegisterTool(TRegularPolygonTool.Create);

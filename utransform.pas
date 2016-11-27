@@ -37,9 +37,13 @@ type
 
 operator + (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
 operator + (APoint: TPoint; ADblPoint: TDoublePoint): TDoublePoint;
+
 operator - (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
+
 operator * (ANumber: Double; ADblPoint: TDoublePoint): TDoublePoint;
 operator * (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
+operator * (ADblPointA, ADblPointB: TDoublePoint): Double;
+
 operator / (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 
 function DoublePoint(AX, AY: Double): TDoublePoint;
@@ -109,6 +113,11 @@ operator * (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 begin
   Result.X := ADblPoint.X * ANumber;
   Result.Y := ADblPoint.Y * ANumber;
+end;
+
+operator * (ADblPointA, ADblPointB: TDoublePoint): Double;
+begin
+  Result := ADblPointA.X * ADblPointB.X + ADblPointA.Y * ADblPointB.Y;
 end;
 
 operator / (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
