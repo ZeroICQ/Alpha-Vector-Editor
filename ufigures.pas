@@ -85,7 +85,7 @@ type
     FCenter: TDoublePoint;
     FCirclePoint: TDoublePoint;
     FFillStyle: TFPBrushStyle;
-    constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor;
+    constructor Create(ACenterPoint: TDoublePoint; APenColor, ABrushColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle; ACorners: Integer);
     procedure DrawFigure(Canvas: TCanvas); override;
     procedure Draw(Canvas: TCanvas); override;
@@ -96,6 +96,24 @@ type
 implementation
 
 { Misc }
+
+function GetTurnAngle(ACenter, AOnCircle: TDoublePoint): Double;
+var
+  CosAngel: Double;
+  VectorX, VectorCircle: TDoublePoint;
+  VectorXLength, VectorCircleLength: Double;
+begin
+  VectorX := DoublePoint(10, 0);
+  VectorCircle := AOnCircle - ACenter;
+  {TODO: привести к читаемому виду}
+  VectorXLength := sqrt(VectorX.X**2 + VectorX.Y**2);
+  VectorCircleLength := sqrt(VectorCircle.X**2 + VectorCircle.Y**2);
+  CosAngel := (VectorX * VectorCircle)/(VectorXLength * VectorCircleLength);
+  if AOnCircle.Y < ACenter.Y then
+    Result := 2*Pi - arccos(CosAngel)
+  else
+    Result := arccos(CosAngel);
+end;
 
 function GetVertexesBound(Vertexes: array of TDoublePoint): TDoubleRect;
   var
@@ -121,12 +139,12 @@ end;
 
 { TRegularPolygon }
 
-constructor TRegularPolygon.Create(ADoublePoint: TDoublePoint; APenColor,
+constructor TRegularPolygon.Create(ACenterPoint: TDoublePoint; APenColor,
   ABrushColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer;
   AFillStyle: TFPBrushStyle; ACorners: Integer);
 begin
   Inherited Create(APenColor, APenStyle, AThickness);
-  FCenter := ADoublePoint;
+  FCenter := ACenterPoint;
   FBrushColor := ABrushColor;
   FFillStyle := AFillStyle;
   FCorners := ACorners;
@@ -136,13 +154,16 @@ procedure TRegularPolygon.DrawFigure(Canvas: TCanvas);
 var
   i: Integer;
   Radius: Double;
+  TurnAngle: Double;
 begin
   Radius := sqrt((FCirclePoint.X - FCenter.X)**2 + (FCirclePoint.Y - FCenter.Y)**2);
   { TODO : Улучшить алгоритм }
   SetLength(FVertexes, FCorners);
+  TurnAngle := GetTurnAngle(FCenter, FCirclePoint);
+
   for i := 0 to FCorners - 1 do begin
-    FVertexes[i].x := FCenter.X + (Radius*sin(i * 2 * pi / FCorners));
-    FVertexes[i].y := FCenter.Y + (Radius*cos(i * 2 * pi / FCorners));
+    FVertexes[i].x := FCenter.X + (Radius*sin((i * 2 * pi / FCorners) - TurnAngle));
+    FVertexes[i].y := FCenter.Y + (Radius*cos((i * 2 * pi / FCorners) - TurnAngle));
   end;
   Canvas.Polygon(WorldVertexesToDispCoord(FVertexes));
 end;
