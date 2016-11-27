@@ -95,6 +95,19 @@ type
       AButton: TMouseButton); override;
   end;
 
+  { TRoundRectangleTool }
+
+  TRoundRectangleTool = class(TFilledFigureTool)
+    FFactorX: Integer;
+    FFactorY: Integer;
+    constructor Create;
+    procedure InitParams; override;
+    procedure ChangeXFactor(AFactor: Integer);
+    procedure ChangeYFactor(AFactor: Integer);
+    procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
+      AButton: TMouseButton); override;
+  end;
+
   { TLineTool }
 
   TLineTool = class(TTwoPointFigureTool)
@@ -139,6 +152,41 @@ procedure RegisterTool(Tool: TTool);
 begin
   SetLength(Tools, Length(Tools) + 1);
   Tools[High(Tools)] := Tool;
+end;
+
+{ TRoundRectangleTool }
+
+constructor TRoundRectangleTool.Create;
+begin
+  Inherited;
+  FIcon := 'img/roundrectangle.bmp';
+end;
+
+procedure TRoundRectangleTool.InitParams;
+begin
+  Inherited;
+  FFactorX := 30;
+  FFactorY := 30;
+  AddParam(TFactorParameter.Create('Скругление по X: ', @ChangeXFactor, FFactorX));
+  AddParam(TFactorParameter.Create('Скругление по Y: ', @ChangeYFactor, FFactorY));
+
+end;
+
+procedure TRoundRectangleTool.ChangeXFactor(AFactor: Integer);
+begin
+  FFactorX := AFactor;
+end;
+
+procedure TRoundRectangleTool.ChangeYFactor(AFactor: Integer);
+begin
+  FFactorY := AFactor;
+end;
+
+procedure TRoundRectangleTool.MouseDown(AMousePos: TPoint; APenColor,
+  ABrushColor: TColor; AButton: TMouseButton);
+begin
+  FFigure := TRoundRectangle.Create(DispToWorldCoord(AMousePos), APenColor,
+  ABrushColor, FLineStyle, FLineWidth, FBrushStyle, FFactorX, FFactorY);
 end;
 
 { TRegularPolygonTool }
@@ -429,6 +477,7 @@ RegisterTool(THandTool.Create);
 RegisterTool(TMagnifierTool.Create);
 RegisterTool(TPolylineTool.Create);
 RegisterTool(TRectangleTool.Create);
+RegisterTool(TRoundRectangleTool.Create);
 RegisterTool(TEllipseTool.Create);
 RegisterTool(TLineTool.Create);
 RegisterTool(TRegularPolygonTool.Create);

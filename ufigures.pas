@@ -67,6 +67,17 @@ type
     procedure DrawFigure(Canvas: TCanvas); override;
   end;
 
+  { TRoundRectangle }
+
+  TRoundRectangle = class(TInscribedFigure)
+    FFactorX: Integer;
+    FFactorY: Integer;
+    constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor;
+      APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle;
+      AFactorX, AFactorY: Integer);
+    procedure DrawFigure(Canvas: TCanvas); override;
+  end;
+
   { TLine }
 
   TLine = class(TTwoPointFigure)
@@ -148,6 +159,22 @@ begin
     end;
   end;
   Result := DoubleRect(LeftX, TopY, RightX, BottomY);
+end;
+
+{ TRoundRectangle }
+
+constructor TRoundRectangle.Create(ADoublePoint: TDoublePoint; APenColor,
+  ABrushColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer;
+  AFillStyle: TFPBrushStyle; AFactorX, AFactorY: Integer);
+begin
+  Inherited Create(ADoublePoint, APenColor, ABrushColor, APenStyle, AThickness, AFillStyle);
+  FFactorX := AFactorX;
+  FFactorY := AFactorY;
+end;
+
+procedure TRoundRectangle.DrawFigure(Canvas: TCanvas);
+begin
+  Canvas.RoundRect(WorldToDispCoord(FigureBounds), FFactorX, FFactorY);
 end;
 
 { TInscribedFigure }
