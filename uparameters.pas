@@ -151,14 +151,14 @@ end;
 procedure TBrushStyleParameter.OnDrawBrushStyleItem(
   Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
 begin
-  with Control as TComboBox do begin
+  with (Control as TComboBox).Canvas, ARect do begin
     {TODO: не отображается прозачная заливка}
-    Canvas.FillRect(ARect);
-    Canvas.Brush.Style := TFPBrushStyle(Index);
-    Canvas.Brush.Color := clREd;
-    Canvas.FillRect(ARect);
-    Canvas.Font.Color := clBlack;
-    Canvas.TextOut(ARect.Left, ARect.Top, Items[Index]);
+    FillRect(ARect);
+    Brush.Style := TFPBrushStyle(Index);
+    Brush.Color := clBlack;
+    Rectangle(ARect);
+    //Canvas.Font.Color := clBlack;
+    //Canvas.TextOut(ARect.Left, ARect.Top, Items[Index]);
   end;
 end;
 
@@ -177,7 +177,7 @@ begin
   FLabel.Caption := 'Стиль заливки';
   FComponent := TComboBox.Create(nil);
   with FComponent as TComboBox do begin
-    for i := 0 to 7 do Items.Add(' ');
+    for i := 0 to 7 do Items.Add('');
     Font.Size := 10;
     Width := 130;
     ItemIndex := 0;
@@ -195,15 +195,13 @@ end;
 procedure TLineStyleParameter.OnDrawLineStyleItem(Control: TWinControl;
   Index: Integer; ARect: TRect; State: TOwnerDrawState);
 begin
-  with Control as TComboBox, ARect do begin
-    {TODO: как-то не работает}
-    Canvas.FillRect(ARect);
-    Canvas.Pen.Style := TFPPenStyle(Index);
-    Canvas.Pen.Width := 5;
-    Canvas.Pen.Color := clBlack;
-    Canvas.Line(Left, (Bottom - Top) div 2, Right, (Bottom - Top) div 2);
-    Font.Color := clBlack;
-    Canvas.TextOut(Left,Top, Items[index]);
+  with (Control as TComboBox).Canvas, ARect do begin
+    {TODO: как-то не так работает}
+    FillRect(ARect);
+    Pen.Style := TFPPenStyle(Index);
+    Pen.Width := 3;
+    Pen.Color := clBlack;
+    Line(ARect);
   end;
 end;
 
@@ -222,11 +220,9 @@ begin
   FLabel.Caption := 'Стиль линии';
   FComponent := TComboBox.Create(nil);
   with FComponent as TComboBox do begin
-    for i := 0 to 4 do Items.Add(' ');
+    for i := 0 to 4 do Items.Add('');
     Style := csOwnerDrawFixed;
-    Font.Bold := True;
     ReadOnly := True;
-    Font.Size := 10;
     Width := 130;
     ItemIndex := 0;
     ItemHeight := 20;
