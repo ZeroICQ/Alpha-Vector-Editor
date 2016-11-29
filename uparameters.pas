@@ -77,6 +77,9 @@ var
 
 implementation
 
+uses
+  LCLType;
+
 { Misc }
 
 procedure ShowParams(APanel: TPanel);
@@ -153,10 +156,22 @@ procedure TBrushStyleParameter.OnDrawBrushStyleItem(
 begin
   with (Control as TComboBox).Canvas, ARect do begin
     {TODO: не отображается прозачная заливка}
-    FillRect(ARect);
-    Brush.Style := TFPBrushStyle(Index);
-    Brush.Color := clBlack;
+    Brush.Style := bsSolid;
+    Brush.Color := clWhite;
+    ARect.Top += 3;
+    ARect.Left += 3;
+    ARect.Right -= 3;
+    ARect.Bottom -= 3;
     Rectangle(ARect);
+    Brush.Style := TFPBrushStyle(Index);
+    //if Brush.Style <> bsClear then begin
+    Brush.Color := clBlack;
+    if odFocused in State then
+      Brush.Color := clBlue;
+    Pen.Color := clBlack;
+    //FillRect(ARect);
+    Rectangle(ARect);
+    //end;
     //Canvas.Font.Color := clBlack;
     //Canvas.TextOut(ARect.Left, ARect.Top, Items[Index]);
   end;
