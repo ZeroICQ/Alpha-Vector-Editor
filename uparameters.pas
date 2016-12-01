@@ -155,7 +155,6 @@ procedure TBrushStyleParameter.OnDrawBrushStyleItem(
   Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
 begin
   with (Control as TComboBox).Canvas, ARect do begin
-    {TODO: не отображается прозачная заливка}
     Brush.Style := bsSolid;
     Brush.Color := clWhite;
     ARect.Top += 3;
@@ -163,17 +162,19 @@ begin
     ARect.Right -= 3;
     ARect.Bottom -= 3;
     Rectangle(ARect);
-    Brush.Style := TFPBrushStyle(Index);
-    //if Brush.Style <> bsClear then begin
-    Brush.Color := clBlack;
+    //workaround of not working bsClear
+    if TFPBrushStyle(Index) = bsClear then begin
+      Brush.Color := clWhite;
+      Brush.Style := bsSolid;
+    end
+    else begin
+      Brush.Style := TFPBrushStyle(Index);
+      Brush.Color := clBlack;
+    end;
     if odFocused in State then
       Brush.Color := clBlue;
     Pen.Color := clBlack;
-    //FillRect(ARect);
     Rectangle(ARect);
-    //end;
-    //Canvas.Font.Color := clBlack;
-    //Canvas.TextOut(ARect.Left, ARect.Top, Items[Index]);
   end;
 end;
 
@@ -211,8 +212,17 @@ procedure TLineStyleParameter.OnDrawLineStyleItem(Control: TWinControl;
   Index: Integer; ARect: TRect; State: TOwnerDrawState);
 begin
   with (Control as TComboBox).Canvas, ARect do begin
-    {TODO: как-то не так работает}
-    FillRect(ARect);
+    Brush.Style := bsSolid;
+    Brush.Color := clWhite;
+    Pen.Style := psClear;
+    Pen.Color := clWhite;
+    ARect.Top += 3;
+    ARect.Left += 3;
+    ARect.Right -= 3;
+    ARect.Bottom -= 3;
+    if odFocused in State then
+      Brush.Color := clBlue;
+    Rectangle(ARect);
     Pen.Style := TFPPenStyle(Index);
     Pen.Width := 3;
     Pen.Color := clBlack;
