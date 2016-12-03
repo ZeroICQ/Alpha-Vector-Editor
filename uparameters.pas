@@ -37,6 +37,8 @@ type
 
   TLineStyleParameter = class(TParameter)
     FLineStyleChange: TLineStyleChange;
+    procedure OnDrawLineStyleItem(Control: TWinControl; Index: Integer;
+      ARect: TRect; State: TOwnerDrawState);
     procedure OnLineStyleChange(Sender: TObject);
     constructor Create(ALineStyleChange: TLineStyleChange);
   end;
@@ -45,6 +47,8 @@ type
 
   TBrushStyleParameter = class(TParameter)
     FBrushStyleChange: TBrushStyleChange;
+    procedure OnDrawBrushStyleItem(Control: TWinControl; Index: Integer;
+      ARect: TRect; State: TOwnerDrawState);
     procedure OnBrushStyleChange(Sender: TObject);
     constructor Create(ABrushStyleChange: TBrushStyleChange);
   end;
@@ -72,6 +76,9 @@ var
   Params: array of TParameter;
 
 implementation
+
+uses
+  LCLType;
 
 { Misc }
 
@@ -144,6 +151,33 @@ end;
 
 { TBrushStyleParameter }
 
+procedure TBrushStyleParameter.OnDrawBrushStyleItem(
+  Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
+begin
+  with (Control as TComboBox).Canvas, ARect do begin
+    Brush.Style := bsSolid;
+    Brush.Color := clWhite;
+    ARect.Top += 3;
+    ARect.Left += 3;
+    ARect.Right -= 3;
+    ARect.Bottom -= 3;
+    Rectangle(ARect);
+    //workaround of not working bsClear
+    if TFPBrushStyle(Index) = bsClear then begin
+      Brush.Color := clWhite;
+      Brush.Style := bsSolid;
+    end
+    else begin
+      Brush.Style := TFPBrushStyle(Index);
+      Brush.Color := clBlack;
+    end;
+    if odFocused in State then
+      Brush.Color := clBlue;
+    Pen.Color := clBlack;
+    Rectangle(ARect);
+  end;
+end;
+
 procedure TBrushStyleParameter.OnBrushStyleChange(Sender: TObject);
 begin
   with Sender as TComboBox do begin
@@ -152,28 +186,49 @@ begin
 end;
 
 constructor TBrushStyleParameter.Create(ABrushStyleChange: TBrushStyleChange);
+var i: Integer;
 begin
   Inherited Create;
   FBrushStyleChange := ABrushStyleChange;
   FLabel.Caption := 'Стиль заливки';
   FComponent := TComboBox.Create(nil);
   with FComponent as TComboBox do begin
-    Items.Add('Сплошная');
-    Items.Add('Без заливки');
-    Items.Add('Горизонтальная');
-    Items.Add('Вертикальная');
-    Items.Add('Диагональная 1');
-    Items.Add('Диагональная 2');
-    Items.Add('Крестом');
-    Items.Add('Наклонным крестом');
+    for i := 0 to 7 do Items.Add('');
     Font.Size := 10;
     Width := 130;
     ItemIndex := 0;
+    ReadOnly := True;
+    AutoSelect := False;
+    ItemHeight := 20;
+    Style := csOwnerDrawFixed;
+    OnDrawItem := @OnDrawBrushStyleItem;
     OnChange := @OnBrushStyleChange;
   end;
 end;
 
 { TLineStyleParameter }
+
+procedure TLineStyleParameter.OnDrawLineStyleItem(Control: TWinControl;
+  Index: Integer; ARect: TRect; State: TOwnerDrawState);
+begin
+  with (Control as TComboBox).Canvas, ARect do begin
+    Brush.Style := bsSolid;
+    Brush.Color := clWhite;
+    Pen.Style := psClear;
+    Pen.Color := clWhite;
+    ARect.Top += 3;
+    ARect.Left += 3;
+    ARect.Right -= 3;
+    ARect.Bottom -= 3;
+    if odFocused in State then
+      Brush.Color := clBlue;
+    Rectangle(ARect);
+    Pen.Style := TFPPenStyle(Index);
+    Pen.Width := 3;
+    Pen.Color := clBlack;
+    Line(ARect);
+  end;
+end;
 
 procedure TLineStyleParameter.OnLineStyleChange(Sender: TObject);
 begin
@@ -183,22 +238,20 @@ begin
 end;
 
 constructor TLineStyleParameter.Create(ALineStyleChange: TLineStyleChange);
+var i: Integer;
 begin
   Inherited Create;
   FLineStyleChange := ALineStyleChange;
   FLabel.Caption := 'Стиль линии';
   FComponent := TComboBox.Create(nil);
   with FComponent as TComboBox do begin
-    Items.Add('─────');
-    Items.Add('─ ─ ─ ─ ─');
-    Items.Add('• • • • • • • • •');
-    Items.Add('─ • ─ • ─ •');
-    Items.Add('─ • • ─ • •');
+    for i := 0 to 4 do Items.Add('');
     Style := csOwnerDrawFixed;
-    Font.Bold := True;
-    Font.Size := 10;
+    ReadOnly := True;
     Width := 130;
     ItemIndex := 0;
+    ItemHeight := 20;
+    OnDrawItem := @OnDrawLineStyleItem;
     OnChange := @OnLineStyleChange;
   end;
 end;
