@@ -37,6 +37,21 @@ type
     procedure MouseMove(AMousePos: TPoint); override;
   end;
 
+  { TSelectionTool }
+
+  TSelectionTool = class(TTool)
+    FStartingPoint: TDoublePoint;
+    FIsSelectingArea: Boolean;
+    constructor Create;
+    procedure InitParams; override;
+    procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
+      AButton: TMouseButton); override;
+     procedure MouseMove(AMousePos: TPoint); override;
+     procedure MouseUp(AMousePos: TPoint); override;
+     procedure SelectFigures(ADoubleRect: TDoubleRect);
+     procedure SelectFigure(ADoublePoint: TDoublePoint);
+  end;
+
   { TMagnifierTool }
 
   TMagnifierTool = class(TTool)
@@ -144,10 +159,93 @@ implementation
 
 { Misc }
 
+procedure DeselectAllFigures;
+var i: Integer;
+begin
+  for i := Low(Figures) to High(Figures) do Figures[i].FIsSelected := False;
+end;
+
+
 procedure RegisterTool(Tool: TTool);
 begin
   SetLength(Tools, Length(Tools) + 1);
   Tools[High(Tools)] := Tool;
+end;
+
+{ TSelectionTool }
+
+constructor TSelectionTool.Create;
+begin
+  Inherited;
+  FIcon := 'img/selection.bmp';
+end;
+
+procedure TSelectionTool.InitParams;
+begin
+  //ничего
+end;
+
+procedure TSelectionTool.MouseDown(AMousePos: TPoint; APenColor,
+  ABrushColor: TColor; AButton: TMouseButton);
+begin
+  FIsSelectingArea := False;
+  FFigure := TSelection.Create(DispToWorldCoord(AMousePos));
+  FStartingPoint := DispToWorldCoord(AMousePos);
+end;
+
+procedure TSelectionTool.MouseMove(AMousePos: TPoint);
+begin
+  FIsSelectingArea := True;
+  (FFigure as TSelection).SetSecondPoint(DispToWorldCoord(AMousePos));
+end;
+
+procedure TSelectionTool.MouseUp(AMousePos: TPoint);
+const
+  Delta = 3;//px
+var
+  SelectionBounds: TDoubleRect;
+  SelectionWidth, SelectionHeight: Double;
+begin
+  {TODO: вынести в методы фигур}
+  SelectionBounds := FFigure.GetBounds;
+  SelectionWidth := SelectionBounds.Right - SelectionBounds.Left;
+  SelectionHeight := SelectionBounds.Bottom - SelectionBounds.Top;
+
+  DeselectAllFigures;
+
+  if FIsSelectingArea and
+    (SelectionWidth > Delta / Scale) or
+    (SelectionHeight > Delta / Scale)
+  then begin
+    SelectFigures(SelectionBounds);
+  end
+  else begin
+    SelectFigure(FStartingPoint);
+  end;
+  FreeAndNil(FFigure);
+end;
+
+procedure TSelectionTool.SelectFigures(ADoubleRect: TDoubleRect);
+var i: Integer;
+begin
+  for i := High(Figures) downto Low(Figures) do begin
+    with Figures[i] do begin
+      if IsIntersect(ADoubleRect) then FIsSelected := True;
+    end;
+  end;
+end;
+
+procedure TSelectionTool.SelectFigure(ADoublePoint: TDoublePoint);
+var i: Integer;
+begin
+  for i := High(Figures) downto Low(Figures) do begin
+    with Figures[i] do begin
+      if IsPointInside(ADoublePoint) then begin
+        FIsSelected := True;
+        Break;
+      end;
+    end;
+  end;
 end;
 
 { TRoundRectangleTool }
@@ -455,6 +553,7 @@ initialization
 
 RegisterTool(THandTool.Create);
 RegisterTool(TMagnifierTool.Create);
+RegisterTool(TSelectionTool.Create);
 RegisterTool(TPolylineTool.Create);
 RegisterTool(TRectangleTool.Create);
 RegisterTool(TRoundRectangleTool.Create);

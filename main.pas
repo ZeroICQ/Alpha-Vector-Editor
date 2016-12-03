@@ -106,7 +106,6 @@ var
   BrushColor: TColor = clBlue;
   isDrawing: Boolean = False;
   ImageBounds: TDoubleRect;
-  Figures: array of TFigure;
   PaletteColors: array of array of TColor;
   CurrentTool: TTool;
 
