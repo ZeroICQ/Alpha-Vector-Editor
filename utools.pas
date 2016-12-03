@@ -268,15 +268,14 @@ procedure TMagnifierTool.MouseDown(AMousePos: TPoint; APenColor,
 begin
   FIsSelectingArea := False;
   FMouseButton := AButton;
-  FFigure := TRectangleLine.Create(
-  DispToWorldCoord(AMousePos), APenColor, ABrushColor, psSolid, 1, bsClear);
+  FFigure := TSelection.Create(DispToWorldCoord(AMousePos));
   FStartingPoint := DispToWorldCoord(AMousePos);
 end;
 
 procedure TMagnifierTool.MouseMove(AMousePos: TPoint);
 begin
   FIsSelectingArea := True;
-  (FFigure as TRectangleLine).SetSecondPoint(DispToWorldCoord(AMousePos));
+  (FFigure as TSelection).SetSecondPoint(DispToWorldCoord(AMousePos));
 end;
 
 procedure TMagnifierTool.MouseUp(AMousePos: TPoint);

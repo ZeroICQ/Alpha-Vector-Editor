@@ -50,7 +50,6 @@ type
     procedure Draw(ACanvas: TCanvas); override;
   end;
 
-
   { TInscribedFigure }
 
   TInscribedFigure = class(TFilledFigure)
@@ -96,9 +95,10 @@ type
     procedure DrawFigure(ACanvas: TCanvas); override;
   end;
 
-  { TRectangleLine }
+  { TSelection }
 
-  TRectangleLine = class(TInscribedFigure)
+  TSelection = class(TInscribedFigure)
+    constructor Create(ADoublePoint: TDoublePoint);
     procedure DrawFigure(ACanvas: TCanvas); override;
   end;
 
@@ -248,7 +248,6 @@ begin
   Result := GetVertexesBound(FVertexes);
 end;
 
-
 { TFilledFigure }
 
 constructor TFilledFigure.Create(APenColor, ABrushColor: TColor;
@@ -357,19 +356,18 @@ begin
   ACanvas.Line(WorldToDispCoord(FStartPoint), WorldToDispCoord(FEndPoint));
 end;
 
-{ TRectangleLine }
-procedure TRectangleLine.DrawFigure(ACanvas: TCanvas);
+{ TSelection }
+procedure TSelection.DrawFigure(ACanvas: TCanvas);
 var
   DispBounds: TRect;
 begin
   DispBounds := WorldToDispCoord(FFigureBounds);
-  with ACanvas do begin
-    MoveTo(DispBounds.Left, DispBounds.Top);
-    LineTo(DispBounds.Right, DispBounds.Top);
-    LineTo(DispBounds.Right, DispBounds.Bottom);
-    LineTo(DispBounds.Left, DispBounds.Bottom);
-    LineTo(DispBounds.Left, DispBounds.Top);
-  end;
+  ACanvas.Frame(DispBounds);
+end;
+
+constructor TSelection.Create(ADoublePoint: TDoublePoint);
+begin
+  Inherited Create(ADoublePoint, clBlack, clBlack, psDash, 2, bsSolid);
 end;
 
 end.
