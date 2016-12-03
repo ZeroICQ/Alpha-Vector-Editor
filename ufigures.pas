@@ -210,6 +210,8 @@ constructor TRegularPolygon.Create(ACenterPoint: TDoublePoint; APenColor,
 begin
   Inherited Create(APenColor, ABrushColor, APenStyle, AThickness, AFillStyle);
   FCenter := ACenterPoint;
+  FCirclePoint.X := ACenterPoint.X + 1;
+  FCirclePoint.Y := ACenterPoint.Y + 1;
   FCorners := ACorners;
 end;
 
