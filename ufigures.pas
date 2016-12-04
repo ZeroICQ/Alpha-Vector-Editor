@@ -226,6 +226,27 @@ begin
   end;
 end;
 
+function PointInsideSegment(AStartPoint, AEndPoint: TDoublePoint;
+  ADoublePoint: TDoublePoint; AThickness: Integer): Boolean;
+var
+  VecA: TPoint;
+  VecB: TPoint;
+  VecC: TPoint;
+  Point: TPoint;
+  StartPoint, EndPoint: TPoint;
+begin
+  Point := WorldToDispCoord(ADoublePoint);
+  StartPoint := WorldToDispCoord(AStartPoint);
+  EndPoint :=  WorldToDispCoord(AEndPoint);
+  VecA := EndPoint - StartPoint;
+  VecB := Point - StartPoint;
+  VecC := Point - EndPoint;
+  AThickness := AThickness div 2;
+  {Вынести в функцию}
+  Result :=
+    ((sqrt(VecC.x**2+VecC.y**2) + sqrt(VecB.x**2+VecB.y**2)) <= sqrt(VecA.x**2+VecA.y**2) + 1);
+end;
+
 function PointInside(ADoublePoint: TDoublePoint; ADoubleRect: TDoubleRect): Boolean;
 begin
   with ADoublePoint, ADoubleRect do begin
@@ -465,11 +486,13 @@ begin
 end;
 
 function TPolyline.IsPointInside(ADoublePoint: TDoublePoint): Boolean;
-var
-  i: Integer;
-  Polyline: HRGN;
+var i: Integer;
 begin
- Result := False;
+  for i := Low(FVertexes) to High(FVertexes) - 1 do begin
+    if PointInsideSegment(FVertexes[i], FVertexes[i+1], ADoublePoint, FThickness) then
+      Exit(True);
+  end;
+  Result := False;
 end;
 
 function TPolyline.IsIntersect(ADoubleRect: TDoubleRect): Boolean;
@@ -477,10 +500,10 @@ var
   i: Integer;
 begin
   for i := Low(FVertexes) to High(FVertexes) do begin
+    if PointInside(FVertexes[i], ADoubleRect) then Exit(True);
     if i < High(FVertexes) - 1 then begin
       if IntersectRect(FVertexes[i], FVertexes[i+1], ADoubleRect) then Exit(True);
     end;
-    if PointInside(FVertexes[i], ADoubleRect) then Exit(True);
   end;
   Result := False;
 end;
@@ -586,22 +609,8 @@ begin
 end;
 
 function TLine.IsPointInside(ADoublePoint: TDoublePoint): Boolean;
-var
-  VecA: TPoint;
-  VecB: TPoint;
-  Point: TPoint;
-  StartPoint, EndPoint: TPoint;
 begin
-  Point := WorldToDispCoord(ADoublePoint);
-  StartPoint := WorldToDispCoord(FStartPoint);
-  EndPoint :=  WorldToDispCoord(FEndPoint);
-  VecA := EndPoint - StartPoint;
-  VecB := Point - StartPoint;
-
-  Result :=
-    (abs((VecB.x*VecA.y-VecB.y*VecA.x)) <= FThickness * Scale * 100) and
-    (((StartPoint.x - Scale * 100 < Point.x) and (Point.x < EndPoint.x + Scale * 100)) or
-    ((EndPoint.x - Scale * 100 < Point.x) and (Point.x < StartPoint.x + Scale * 100)));
+  Result := PointInsideSegment(FStartPoint, FEndPoint, ADoublePoint, FThickness);
 end;
 
 { TSelection }
