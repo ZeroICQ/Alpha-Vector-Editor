@@ -444,12 +444,17 @@ end;
 
 procedure TFigure.Draw(ACanvas: TCanvas);
 begin
+  if FIsSelected then begin
+    with GetBounds do begin;
+      ACanvas.Pen.Style := psDash;
+      ACanvas.Pen.Color := clBlue;
+      ACanvas.Pen.Width := 2;
+      ACanvas.Frame(WorldToDispCoord(DoubleRect(TopLeft - 5 / Scale, BottomRight + 5 / Scale)));
+    end;
+  end;
   ACanvas.Pen.Color := FPenColor;
   ACanvas.Pen.Width := FThickness;
   ACanvas.Pen.Style := FPenStyle;
-  if FIsSelected then begin
-    ACanvas.Pen.Width := FThickness + 3;
-  end;
   DrawFigure(ACanvas);
 end;
 

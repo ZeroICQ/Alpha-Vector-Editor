@@ -38,10 +38,12 @@ type
 operator + (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
 operator + (APoint: TPoint; ADblPoint: TDoublePoint): TDoublePoint;
 operator + (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
+operator + (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 
 operator - (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
 operator - (APointA, APointB: TPoint): TPoint;
 operator - (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
+operator - (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 
 operator * (ANumber: Double; ADblPoint: TDoublePoint): TDoublePoint;
 operator * (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
@@ -112,6 +114,12 @@ begin
   Result.Y := AdblPoint.Y + ANumber;
 end;
 
+operator + (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
+begin
+  Result.X := AdblPoint.X + ANumber;
+  Result.Y := AdblPoint.Y + ANumber;
+end;
+
 operator - (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
 begin
   Result.X := ADblPointA.X - ADblPointB.X;
@@ -125,6 +133,12 @@ begin
 end;
 
 operator - (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
+begin
+  Result.X := AdblPoint.X - ANumber;
+  Result.Y := AdblPoint.Y - ANumber;
+end;
+
+operator - (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 begin
   Result.X := AdblPoint.X - ANumber;
   Result.Y := AdblPoint.Y - ANumber;
