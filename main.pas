@@ -296,7 +296,7 @@ procedure TVectorEditor.PaintBoxMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   isDrawing := True;
-  CurrentTool.MouseDown(Point(X, Y), PenColor, BrushColor, Button);
+  CurrentTool.MouseDown(Point(X, Y), PenColor, BrushColor, Button, Shift);
 end;
 
 procedure TVectorEditor.PaintBoxMouseMove(Sender: TObject; Shift: TShiftState;

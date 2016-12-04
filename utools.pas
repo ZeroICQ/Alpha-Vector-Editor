@@ -10,6 +10,8 @@ uses
 
 type
 
+  TSelectionMode = (Select, Add);
+
   { TTool }
 
   TTool = class
@@ -21,7 +23,7 @@ type
     procedure AddParam(AParam: TParameter);
     function GetFigure: TFigure;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); virtual; abstract;
+      AButton: TMouseButton; AShift: TShiftState); virtual; abstract;
     procedure MouseMove(AMousePos: TPoint); virtual; abstract;
     procedure MouseUp(AMousePos: TPoint); virtual;
   end;
@@ -33,7 +35,7 @@ type
     constructor Create;
     procedure InitParams; override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); override;
+      AButton: TMouseButton; AShift: TShiftState); override;
     procedure MouseMove(AMousePos: TPoint); override;
   end;
 
@@ -42,14 +44,15 @@ type
   TSelectionTool = class(TTool)
     FStartingPoint: TDoublePoint;
     FIsSelectingArea: Boolean;
+    FShift: TShiftState;
     constructor Create;
     procedure InitParams; override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); override;
+      AButton: TMouseButton; AShift: TShiftState); override;
      procedure MouseMove(AMousePos: TPoint); override;
      procedure MouseUp(AMousePos: TPoint); override;
      procedure SelectFigures(ADoubleRect: TDoubleRect);
-     procedure SelectFigure(ADoublePoint: TDoublePoint);
+     procedure SelectFigure(ADoublePoint: TDoublePoint; AMode: TSelectionMode);
   end;
 
   { TMagnifierTool }
@@ -61,7 +64,7 @@ type
     constructor Create;
     procedure InitParams; override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); override;
+      AButton: TMouseButton; AShift: TShiftState); override;
     procedure MouseMove(AMousePos: TPoint); override;
     procedure MouseUp(AMousePos: TPoint); override;
   end;
@@ -96,7 +99,7 @@ type
     procedure InitParams; override;
     constructor Create;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); override;
+      AButton: TMouseButton; AShift: TShiftState); override;
     procedure MouseMove(AMousePos: TPoint); override;
   end;
 
@@ -106,7 +109,7 @@ type
     constructor Create;
     procedure InitParams; override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); override;
+      AButton: TMouseButton; AShift: TShiftState); override;
   end;
 
   { TRoundRectangleTool }
@@ -119,7 +122,7 @@ type
     procedure ChangeXFactor(AFactor: Integer);
     procedure ChangeYFactor(AFactor: Integer);
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); override;
+      AButton: TMouseButton; AShift: TShiftState); override;
   end;
 
   { TLineTool }
@@ -128,7 +131,7 @@ type
     constructor Create;
     procedure InitParams; override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); override;
+      AButton: TMouseButton; AShift: TShiftState); override;
   end;
 
   { TEllipseTool }
@@ -137,7 +140,7 @@ type
     constructor Create;
     procedure InitParams; override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); override;
+      AButton: TMouseButton; AShift: TShiftState); override;
   end;
 
   { TRegularPolygonTool }
@@ -149,7 +152,7 @@ type
     procedure ChangeCornersNumber(ACorners: Integer);
     procedure MouseMove(AMousePos: TPoint); override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton); override;
+      AButton: TMouseButton; AShift: TShiftState); override;
   end;
 
 var
@@ -186,8 +189,9 @@ begin
 end;
 
 procedure TSelectionTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
+  FShift := AShift;
   FIsSelectingArea := False;
   FFigure := TSelection.Create(DispToWorldCoord(AMousePos));
   FStartingPoint := DispToWorldCoord(AMousePos);
@@ -205,22 +209,27 @@ const
 var
   SelectionBounds: TDoubleRect;
   SelectionWidth, SelectionHeight: Double;
+  SelectionMode: TSelectionMode;
 begin
   {TODO: вынести в методы фигур}
   SelectionBounds := FFigure.GetBounds;
   SelectionWidth := SelectionBounds.Right - SelectionBounds.Left;
   SelectionHeight := SelectionBounds.Bottom - SelectionBounds.Top;
 
-  DeselectAllFigures;
-
   if FIsSelectingArea and
     (SelectionWidth > Delta / Scale) or
     (SelectionHeight > Delta / Scale)
   then begin
+    DeselectAllFigures;
     SelectFigures(SelectionBounds);
   end
   else begin
-    SelectFigure(FStartingPoint);
+    if (ssCtrl in FShift) then SelectionMode := Add
+    else begin
+      DeselectAllFigures;
+      SelectionMode := Select;
+    end;
+    SelectFigure(FStartingPoint, SelectionMode);
   end;
   FreeAndNil(FFigure);
 end;
@@ -235,14 +244,16 @@ begin
   end;
 end;
 
-procedure TSelectionTool.SelectFigure(ADoublePoint: TDoublePoint);
+procedure TSelectionTool.SelectFigure(ADoublePoint: TDoublePoint;
+  AMode: TSelectionMode);
 var i: Integer;
 begin
   for i := High(Figures) downto Low(Figures) do begin
     with Figures[i] do begin
       if IsPointInside(ADoublePoint) then begin
-        FIsSelected := True;
-        Break;
+        if AMode = Add then FIsSelected := not FIsSelected
+        else FIsSelected := True;
+        Exit;
       end;
     end;
   end;
@@ -277,7 +288,7 @@ begin
 end;
 
 procedure TRoundRectangleTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
   FFigure := TRoundRectangle.Create(DispToWorldCoord(AMousePos), APenColor,
   ABrushColor, FLineStyle, FLineWidth, FBrushStyle, FFactorX, FFactorY);
@@ -309,7 +320,7 @@ begin
 end;
 
 procedure TRegularPolygonTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
   FFigure := TRegularPolygon.Create(
     DispToWorldCoord(AMousePos), APenColor, ABrushColor, FLineStyle, FLineWidth,
@@ -362,7 +373,7 @@ begin
 end;
 
 procedure TMagnifierTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
   FIsSelectingArea := False;
   FMouseButton := AButton;
@@ -422,7 +433,7 @@ begin
 end;
 
 procedure THandTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
   FStartingPoint := DispToWorldCoord(AMousePos);
 end;
@@ -481,7 +492,7 @@ begin
 end;
 
 procedure TPolylineTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
   FFigure := TPolyline.Create(
     DispToWorldCoord(AMousePos), APenColor, FLineStyle, FLineWidth);
@@ -505,7 +516,7 @@ begin
 end;
 
 procedure TRectangleTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
   FFigure := TRectangle.Create(
     DispToWorldCoord(AMousePos), APenColor, ABrushColor, FLineStyle, FLineWidth, FBrushStyle);
@@ -524,7 +535,7 @@ begin
 end;
 
 procedure TEllipseTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
   FFigure := TEllipse.Create(
     DispToWorldCoord(AMousePos), APenColor, ABrushColor, FLineStyle, FLineWidth, FBrushStyle);
@@ -543,7 +554,7 @@ begin
 end;
 
 procedure TLineTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
   FFigure := TLine.Create(
    DispToWorldCoord(AMousePos), APenColor, FLineStyle, FLineWidth);
