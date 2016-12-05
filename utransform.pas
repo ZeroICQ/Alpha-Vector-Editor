@@ -37,14 +37,25 @@ type
 
 operator + (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
 operator + (APoint: TPoint; ADblPoint: TDoublePoint): TDoublePoint;
+operator + (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
+operator + (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 
 operator - (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
+operator - (APointA, APointB: TPoint): TPoint;
+operator - (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
+operator - (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 
 operator * (ANumber: Double; ADblPoint: TDoublePoint): TDoublePoint;
 operator * (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 operator * (ADblPointA, ADblPointB: TDoublePoint): Double;
+operator * (APointA, APointB: TPoint): Double;
 
 operator / (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
+
+operator = (ADblPointA, ADblPointB: TDoublePoint): Boolean;
+
+operator >= (ADblPointA, ADblPointB: TDoublePoint): Boolean;
+operator <= (ADblPointA, ADblPointB: TDoublePoint): Boolean;
 
 function DoublePoint(AX, AY: Double): TDoublePoint;
 function DoublePoint(APoint: TPoint): TDoublePoint;
@@ -97,10 +108,40 @@ begin
   Result.Y := APoint.y + ADblPoint.Y;
 end;
 
+operator + (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
+begin
+  Result.X := AdblPoint.X + ANumber;
+  Result.Y := AdblPoint.Y + ANumber;
+end;
+
+operator + (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
+begin
+  Result.X := AdblPoint.X + ANumber;
+  Result.Y := AdblPoint.Y + ANumber;
+end;
+
 operator - (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
 begin
   Result.X := ADblPointA.X - ADblPointB.X;
   Result.Y := ADblPointA.Y - ADblPointB.Y;
+end;
+
+operator - (APointA, APointB: TPoint): TPoint;
+begin
+  Result.X := APointA.X - APointB.X;
+  Result.Y := APointA.Y - APointB.Y;
+end;
+
+operator - (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
+begin
+  Result.X := AdblPoint.X - ANumber;
+  Result.Y := AdblPoint.Y - ANumber;
+end;
+
+operator - (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
+begin
+  Result.X := AdblPoint.X - ANumber;
+  Result.Y := AdblPoint.Y - ANumber;
 end;
 
 operator * (ANumber: Double; ADblPoint: TDoublePoint): TDoublePoint;
@@ -120,10 +161,31 @@ begin
   Result := ADblPointA.X * ADblPointB.X + ADblPointA.Y * ADblPointB.Y;
 end;
 
+operator * (APointA, APointB: TPoint): Double;
+begin
+  Result := APointA.X * APointB.X + APointA.Y * APointB.Y;
+end;
+
 operator / (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 begin
   Result.X := ADblPoint.X / ANumber;
   Result.Y := ADblPoint.Y / ANumber;
+end;
+
+operator = (ADblPointA, ADblPointB: TDoublePoint): Boolean;
+begin
+  if (ADblPointA.X = ADblPointB.X) and (ADblPointA.Y = ADblPointB.Y) then Result := True
+  else Result := False;
+end;
+
+operator >= (ADblPointA, ADblPointB: TDoublePoint): Boolean;
+begin
+  Result := (ADblPointA.X >= ADblPointB.X) and (ADblPointA.Y >= ADblPointB.Y);
+end;
+
+operator <= (ADblPointA, ADblPointB: TDoublePoint): Boolean;
+begin
+  Result := (ADblPointA.X <= ADblPointB.X) and (ADblPointA.Y <= ADblPointB.Y);
 end;
 
 { TDoublePoint }

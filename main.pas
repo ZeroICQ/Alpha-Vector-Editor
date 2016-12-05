@@ -106,7 +106,6 @@ var
   BrushColor: TColor = clBlue;
   isDrawing: Boolean = False;
   ImageBounds: TDoubleRect;
-  Figures: array of TFigure;
   PaletteColors: array of array of TColor;
   CurrentTool: TTool;
 
@@ -297,7 +296,7 @@ procedure TVectorEditor.PaintBoxMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   isDrawing := True;
-  CurrentTool.MouseDown(Point(X, Y), PenColor, BrushColor, Button);
+  CurrentTool.MouseDown(Point(X, Y), PenColor, BrushColor, Button, Shift);
 end;
 
 procedure TVectorEditor.PaintBoxMouseMove(Sender: TObject; Shift: TShiftState;
