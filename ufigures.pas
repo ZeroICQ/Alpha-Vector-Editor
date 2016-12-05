@@ -451,7 +451,8 @@ begin
       ACanvas.Pen.Style := psDash;
       ACanvas.Pen.Color := clBlue;
       ACanvas.Pen.Width := 2;
-      ACanvas.Frame(WorldToDispCoord(DoubleRect(TopLeft - 5 / Scale, BottomRight + 5 / Scale)));
+      ACanvas.Frame(WorldToDispCoord(DoubleRect(TopLeft - FThickness - 5 / Scale,
+        BottomRight + FThickness + 5 / Scale)));
     end;
   end;
   ACanvas.Pen.Color := FPenColor;
