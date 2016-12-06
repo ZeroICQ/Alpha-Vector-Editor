@@ -137,67 +137,6 @@ implementation
 
 { Misc }
 
-//взято из winapi
-function RoundRectPolygon(X1, Y1, X2, Y2: Integer; RX,RY : Integer): HRGN;
-var
-  T: Integer;
-  Points: PPoint;
-  Count: Integer;
-
-  procedure AddArcPoints(Left, Top, Right, Bottom, Angle1, Angle2: Integer);
-  var
-    P: PPoint;
-    C: Integer;
-    I: Integer;
-  begin
-    P := nil;
-    try
-      PolyBezierArcPoints(Left, Top, Right - Left, Bottom - Top, Angle1, Angle2,
-        0, P, C);
-      ReallocMem(Points, (Count + C) * SizeOf(TPoint));
-      for I := 0 to Pred(C) do
-        Points[Count + Pred(C) - I] := P[I];
-      Inc(Count, C);
-    finally
-      FreeMem(P);
-    end;
-  end;
-begin
-  if X2 < X1 then
-  begin
-    T := X1;
-    X1 := X2;
-    X2 := T;
-  end;
-  if Y2 < Y1 then
-  begin
-    T := Y1;
-    Y1 := Y2;
-    Y2 := T;
-  end;
-  if (X2 - X1 <= 0) or (Y2 - Y1 <= 0) then Exit;
-  Dec(X2);
-  Dec(Y2);
-  if not ((RX <= 0) or (RY <= 0)) then
-  begin
-    if X2 - X1 < RX then RX := X2 - X1;
-    if Y2 - Y1 < RY then RY := Y2 - Y1;
-    Points := nil;
-    Count := 0;
-    try
-      AddArcPoints(X1, Y1, X1 + RX, Y1 + RY,  90 * 16, 90 * 16);
-      AddArcPoints(X2 - RX, Y1, X2, Y1 + RY,   0 * 16, 90 * 16);
-      AddArcPoints(X2 - RX, Y2 - RY, X2, Y2, 270 * 16, 90 * 16);
-      AddArcPoints(X1, Y2 - RY, X1 + RX, Y2, 180 * 16, 90 * 16);
-      Result := CreatePolygonRgn(Points[0], Count, WINDING);
-    finally
-      FreeMem(Points);
-    end;
-  end
-  else
-    Result := CreateRectRgn(X1, Y1, X2, Y2);
-end;
-
 function IntersectSegments(APointA, APointB, APointC, APointD: TDoublePoint): Boolean;
 var
   v1,v2,v3,v4: Double;
@@ -311,22 +250,29 @@ begin
 end;
 
 function TRoundRectangle.IsIntersect(ADoubleRect: TDoubleRect): Boolean;
+var
+  RoundRect: HRGN;
 begin
-  with WorldToDispCoord(FFigureBounds) do
-    Result := RectInRegion(
-      RoundRectPolygon(Left, Top, Right, Bottom, FFactorX, FFactorY),
-      WorldToDispCoord(ADoubleRect));
+  with WorldToDispCoord(GetBounds) do begin
+    RoundRect := CreateRoundRectRgn(Left, Top, Right, Bottom, FFactorX, FFactorY);
+  end;
+  Result := RectInRegion(RoundRect, WorldToDispCoord(ADoubleRect));
+  DeleteObject(RoundRect);
 end;
 
 function TRoundRectangle.IsPointInside(ADoublePoint: TDoublePoint): Boolean;
-var Point: TPoint;
+var
+  Point: TPoint;
+  RoundRect: HRGN;
 begin
+  with WorldToDispCoord(GetBounds) do begin
+    RoundRect := CreateRoundRectRgn(Left, Top, Right, Bottom, FFactorY, FFactorY);
+  end;
   Point := WorldToDispCoord(ADoublePoint);
-  with WorldToDispCoord(FFigureBounds) do
-    Result := PtInRegion(
-      RoundRectPolygon(Left, Top, Right, Bottom, FFactorX, FFactorY),
-      Point.x, Point.y);
+  Result := PtInRegion(RoundRect, Point.X, Point.Y);
+  DeleteObject(RoundRect);
 end;
+
 
 { TInscribedFigure }
 
