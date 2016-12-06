@@ -5,7 +5,7 @@ unit UFigures;
 interface
 
 uses
-   UTransform, GraphMath, windows, Classes, SysUtils, Graphics, FPCanvas, LCL, math;
+  UTransform, GraphMath, windows, Classes, SysUtils, Graphics, FPCanvas, LCL, math;
 
 type
 
@@ -41,8 +41,8 @@ type
 
   TTwoPointFigure = class(TFigure)
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); virtual; abstract;
-    constructor Create(APenColor: TColor; APenStyle: TFPPenStyle;
-      AThickness: Integer);
+    constructor Create(
+      APenColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer);
   end;
 
   { TFilledFigure }
@@ -198,7 +198,7 @@ begin
     Result := CreateRectRgn(X1, Y1, X2, Y2);
 end;
 
-function Intersect(APointA, APointB, APointC, APointD: TDoublePoint): Boolean;
+function IntersectSegments(APointA, APointB, APointC, APointD: TDoublePoint): Boolean;
 var
   v1,v2,v3,v4: Double;
   ax1, ay1, ax2, ay2, bx1, by1, bx2, by2: Double;
@@ -219,10 +219,10 @@ function IntersectRect(AStartPoint, AEndPoint: TDoublePoint; ADoubleRect: TDoubl
 begin
   with ADoubleRect do begin
     Result :=
-      Intersect(AStartPoint, AEndPoint, DoublePoint(Left, Bottom), TopLeft) or
-      Intersect(AStartPoint, AEndPoint, TopLeft, DoublePoint(Right, Top)) or
-      Intersect(AStartPoint, AEndPoint, DoublePoint(Right, Top), BottomRight) or
-      Intersect(AStartPoint, AEndPoint, BottomRight, DoublePoint(Left, Bottom));
+      IntersectSegments(AStartPoint, AEndPoint, DoublePoint(Left, Bottom), TopLeft) or
+      IntersectSegments(AStartPoint, AEndPoint, TopLeft, DoublePoint(Right, Top)) or
+      IntersectSegments(AStartPoint, AEndPoint, DoublePoint(Right, Top), BottomRight) or
+      IntersectSegments(AStartPoint, AEndPoint, BottomRight, DoublePoint(Left, Bottom));
   end;
 end;
 
@@ -244,10 +244,10 @@ begin
   AThickness := AThickness div 2;
   {Вынести в функцию}
   Result :=
-    ((sqrt(VecC.x**2+VecC.y**2) + sqrt(VecB.x**2+VecB.y**2)) <= sqrt(VecA.x**2+VecA.y**2) + 1);
+    ((sqrt(VecC.x**2 + VecC.y**2) + sqrt(VecB.x**2 + VecB.y**2)) <= sqrt(VecA.x**2 + VecA.y**2)+1);
 end;
 
-function PointInside(ADoublePoint: TDoublePoint; ADoubleRect: TDoubleRect): Boolean;
+function PointInsideRect(ADoublePoint: TDoublePoint; ADoubleRect: TDoubleRect): Boolean;
 begin
   with ADoublePoint, ADoubleRect do begin
     Result := (X <= Right) and (X >= Left) and (Y >= Top) and (Y <= Bottom);
@@ -313,7 +313,8 @@ end;
 function TRoundRectangle.IsIntersect(ADoubleRect: TDoubleRect): Boolean;
 begin
   with WorldToDispCoord(FFigureBounds) do
-    Result := RectInRegion(RoundRectPolygon(Left, Top, Right, Bottom, FFactorX, FFactorY),
+    Result := RectInRegion(
+      RoundRectPolygon(Left, Top, Right, Bottom, FFactorX, FFactorY),
       WorldToDispCoord(ADoubleRect));
 end;
 
@@ -322,7 +323,8 @@ var Point: TPoint;
 begin
   Point := WorldToDispCoord(ADoublePoint);
   with WorldToDispCoord(FFigureBounds) do
-    Result := PtInRegion(RoundRectPolygon(Left, Top, Right, Bottom, FFactorX, FFactorY),
+    Result := PtInRegion(
+      RoundRectPolygon(Left, Top, Right, Bottom, FFactorX, FFactorY),
       Point.x, Point.y);
 end;
 
@@ -374,7 +376,6 @@ begin
   { TODO : Улучшить алгоритм }
   SetLength(FVertexes, FCorners);
   TurnAngle := GetTurnAngle(FCenter, FCirclePoint);
-
   for i := 0 to FCorners - 1 do begin
     FVertexes[i].x := FCenter.X + (Radius*sin((i * 2 * pi / FCorners) - TurnAngle));
     FVertexes[i].y := FCenter.Y + (Radius*cos((i * 2 * pi / FCorners) - TurnAngle));
@@ -451,8 +452,8 @@ begin
       ACanvas.Pen.Style := psDash;
       ACanvas.Pen.Color := clBlue;
       ACanvas.Pen.Width := 2;
-      ACanvas.Frame(WorldToDispCoord(DoubleRect(TopLeft - FThickness - 5 / Scale,
-        BottomRight + FThickness + 5 / Scale)));
+      ACanvas.Frame(WorldToDispCoord(DoubleRect(
+        TopLeft - FThickness - 5 / Scale, BottomRight + FThickness + 5 / Scale)));
     end;
   end;
   ACanvas.Pen.Color := FPenColor;
@@ -508,7 +509,7 @@ var
   i: Integer;
 begin
   for i := Low(FVertexes) to High(FVertexes) do begin
-    if PointInside(FVertexes[i], ADoubleRect) then Exit(True);
+    if PointInsideRect(FVertexes[i], ADoubleRect) then Exit(True);
     if i < High(FVertexes) - 1 then begin
       if IntersectRect(FVertexes[i], FVertexes[i+1], ADoubleRect) then Exit(True);
     end;
@@ -611,8 +612,8 @@ begin
   with ADoubleRect do begin
     Result :=
       IntersectRect(FStartPoint, FEndPoint, ADoubleRect) or
-      PointInside(FStartPoint, ADoubleRect) or
-      PointInside(FEndPoint, ADoubleRect);
+      PointInsideRect(FStartPoint, ADoubleRect) or
+      PointInsideRect(FEndPoint, ADoubleRect);
   end;
 end;
 
