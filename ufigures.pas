@@ -168,22 +168,20 @@ end;
 function PointInsideSegment(AStartPoint, AEndPoint: TDoublePoint;
   ADoublePoint: TDoublePoint; AThickness: Integer): Boolean;
 var
-  VecA: TPoint;
-  VecB: TPoint;
-  VecC: TPoint;
-  Point: TPoint;
-  StartPoint, EndPoint: TPoint;
+  A, B, C: Double;
+  Thickness: Double;
 begin
-  Point := WorldToDispCoord(ADoublePoint);
-  StartPoint := WorldToDispCoord(AStartPoint);
-  EndPoint :=  WorldToDispCoord(AEndPoint);
-  VecA := EndPoint - StartPoint;
-  VecB := Point - StartPoint;
-  VecC := Point - EndPoint;
-  AThickness := AThickness div 2;
-  {Вынести в функцию}
-  Result :=
-    ((sqrt(VecC.x**2 + VecC.y**2) + sqrt(VecB.x**2 + VecB.y**2)) <= sqrt(VecA.x**2 + VecA.y**2)+1);
+  Thickness := (AThickness / 2 / Scale);
+  A := AStartPoint.Y - AEndPoint.Y;
+  B := AEndPoint.X - AStartPoint.X;
+  C := (AStartPoint.X * AEndPoint.Y) - (AEndPoint.X * AStartPoint.Y);
+  with ADoublePoint do
+    Result :=
+      (abs(A*X + B*Y + C) / sqrt(A**2 + B**2) <= Thickness) and
+      (((AStartPoint.X - Thickness < X) and (X < AEndPoint.X + Thickness)) or
+        (AEndPoint.X - Thickness < X) and (X < AStartPoint.X + Thickness)) and
+      (((AStartPoint.Y - Thickness < Y) and (Y < AEndPoint.Y + Thickness)) or
+        (AEndPoint.Y - Thickness < Y) and (Y < AStartPoint.Y + Thickness));
 end;
 
 function PointInsideRect(ADoublePoint: TDoublePoint; ADoubleRect: TDoubleRect): Boolean;
@@ -401,6 +399,7 @@ begin
       ACanvas.Frame(WorldToDispCoord(DoubleRect(
         TopLeft - FThickness - 5 / Scale, BottomRight + FThickness + 5 / Scale)));
     end;
+    ACanvas.Pen.Color := clRed;
   end;
   ACanvas.Pen.Color := FPenColor;
   ACanvas.Pen.Width := FThickness;
