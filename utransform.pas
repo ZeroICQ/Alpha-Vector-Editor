@@ -37,13 +37,15 @@ type
 
 operator + (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
 operator + (APoint: TPoint; ADblPoint: TDoublePoint): TDoublePoint;
+operator + (APoint: TPoint; ANumber: Integer): TPoint;
 operator + (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
 operator + (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 
 operator - (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;
 operator - (APointA, APointB: TPoint): TPoint;
-operator - (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
-operator - (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
+operator - (APoint: TPoint; ANumber: Integer): TPoint;
+operator - (ADblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
+operator - (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
 
 operator * (ANumber: Double; ADblPoint: TDoublePoint): TDoublePoint;
 operator * (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
@@ -108,6 +110,12 @@ begin
   Result.Y := APoint.y + ADblPoint.Y;
 end;
 
+operator + (APoint: TPoint; ANumber: Integer): TPoint;
+begin
+  Result.X := APoint.X + ANumber;
+  Result.Y := APoint.Y + ANumber;
+end;
+
 operator + (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
 begin
   Result.X := AdblPoint.X + ANumber;
@@ -132,16 +140,22 @@ begin
   Result.Y := APointA.Y - APointB.Y;
 end;
 
-operator - (AdblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
+operator - (APoint: TPoint; ANumber: Integer): TPoint;
 begin
-  Result.X := AdblPoint.X - ANumber;
-  Result.Y := AdblPoint.Y - ANumber;
+  Result.X := APoint.X - ANumber;
+  Result.Y := APoint.Y - ANumber;
 end;
 
-operator - (AdblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
+operator - (ADblPoint: TDoublePoint; ANumber: Integer): TDoublePoint;
 begin
-  Result.X := AdblPoint.X - ANumber;
-  Result.Y := AdblPoint.Y - ANumber;
+  Result.X := ADblPoint.X - ANumber;
+  Result.Y := ADblPoint.Y - ANumber;
+end;
+
+operator - (ADblPoint: TDoublePoint; ANumber: Double): TDoublePoint;
+begin
+  Result.X := ADblPoint.X - ANumber;
+  Result.Y := ADblPoint.Y - ANumber;
 end;
 
 operator * (ANumber: Double; ADblPoint: TDoublePoint): TDoublePoint;

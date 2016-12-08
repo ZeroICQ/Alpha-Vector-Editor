@@ -413,21 +413,28 @@ begin
 end;
 
 procedure TFigure.Draw(ACanvas: TCanvas);
+var FrameCoords: TRect;
 begin
-  if FIsSelected then begin
-    with GetBounds do begin;
-      ACanvas.Pen.Style := psDash;
-      ACanvas.Pen.Color := clBlue;
-      ACanvas.Pen.Width := 2;
-      ACanvas.Frame(WorldToDispCoord(DoubleRect(
-        TopLeft - FThickness - 5 / Scale, BottomRight + FThickness + 5 / Scale)));
+  with ACanvas, GetBounds do begin
+    if IsSelected then begin
+      Pen.Style := psDash;
+      Pen.Color := clBlue;
+      Pen.Width := 2;
+      FrameCoords := WorldToDispCoord(DoubleRect(TopLeft, BottomRight));
+      FrameCoords.TopLeft -= FThickness + 5;
+      FrameCoords.BottomRight  += FThickness + 5;
+      Frame(FrameCoords);
+      ACanvas.Pen.Color := clRed;
     end;
-    ACanvas.Pen.Color := clRed;
+    ACanvas.Pen.Color := FPenColor;
+    ACanvas.Pen.Width := FThickness;
+    ACanvas.Pen.Style := FPenStyle;
+    if IsSelected then begin
+      Brush.Color := RGBToColor(255, 0, 128);
+      Pen.Color := RGBToColor(0, 255, 255);
+    end;
+    DrawFigure(ACanvas);
   end;
-  ACanvas.Pen.Color := FPenColor;
-  ACanvas.Pen.Width := FThickness;
-  ACanvas.Pen.Style := FPenStyle;
-  DrawFigure(ACanvas);
 end;
 
 { TTwoPointFigure }
