@@ -5,7 +5,7 @@ unit UFigures;
 interface
 
 uses
-  UTransform, GraphMath, windows, Classes, SysUtils, Graphics, FPCanvas, LCL, math;
+  UTransform, windows, Classes, SysUtils, Graphics, FPCanvas, LCL, math;
 
 type
 

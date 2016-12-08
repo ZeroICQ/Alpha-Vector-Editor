@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, Controls, SysUtils, Graphics, UTransform, StdCtrls,
-  ExtCtrls, LCLClasses, Spin, FPCanvas;
+  ExtCtrls, Spin, FPCanvas;
 
 type
 
