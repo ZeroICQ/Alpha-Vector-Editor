@@ -15,11 +15,14 @@ type
   { TTool }
 
   TTool = class
+  private
     FFigure: TFigure;
     FPanel: TPanel;
     FIcon: String;
-    procedure Init(APanel: TPanel);
     procedure InitParams; virtual; abstract;
+  public
+    property Icon: String read FIcon write FIcon;
+    procedure Init(APanel: TPanel);
     procedure AddParam(AParam: TParameter);
     function GetFigure: TFigure;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
@@ -31,9 +34,11 @@ type
   { THandTool }
 
   THandTool = class(TTool)
+  private
     FStartingPoint: TDoublePoint;
-    constructor Create;
     procedure InitParams; override;
+  public
+    constructor Create;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState); override;
     procedure MouseMove(AMousePos: TPoint); override;
@@ -42,11 +47,13 @@ type
   { TSelectionTool }
 
   TSelectionTool = class(TTool)
+  private
     FStartingPoint: TDoublePoint;
     FIsSelectingArea: Boolean;
     FShift: TShiftState;
-    constructor Create;
     procedure InitParams; override;
+  public
+    constructor Create;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState); override;
      procedure MouseMove(AMousePos: TPoint); override;
@@ -58,11 +65,13 @@ type
   { TMagnifierTool }
 
   TMagnifierTool = class(TTool)
+  private
     FStartingPoint: TDoublePoint;
     FIsSelectingArea: Boolean;
     FMouseButton: TMouseButton;
-    constructor Create;
     procedure InitParams; override;
+  public
+    constructor Create;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState); override;
     procedure MouseMove(AMousePos: TPoint); override;
@@ -72,6 +81,7 @@ type
   { TFigureTool }
 
   TFigureTool = class(TTool)
+  private
     FLineWidth: Integer;
     FLineStyle: TFPPenStyle;
     procedure InitParams; override;
@@ -82,12 +92,14 @@ type
   { TTwoPointFigureTool }
 
   TTwoPointFigureTool = class(TFigureTool)
+  public
     procedure MouseMove(AMousePos: TPoint); override;
   end;
 
   { TFilledFigureTool }
 
   TFilledFigureTool = class(TTwoPointFigureTool)
+  private
     FBrushStyle: TFPBrushStyle;
     procedure ChangeBrushStyle(ABrushStyle: TFPBrushStyle);
     procedure InitParams; override;
@@ -96,7 +108,9 @@ type
   { TPolylineTool }
 
   TPolylineTool = class(TFigureTool)
+  private
     procedure InitParams; override;
+  public
     constructor Create;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState); override;
@@ -106,8 +120,10 @@ type
   { TRectangleTool }
 
   TRectangleTool = class(TFilledFigureTool)
-    constructor Create;
+  private
     procedure InitParams; override;
+  public
+    constructor Create;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState); override;
   end;
@@ -115,12 +131,14 @@ type
   { TRoundRectangleTool }
 
   TRoundRectangleTool = class(TFilledFigureTool)
+  private
     FFactorX: Integer;
     FFactorY: Integer;
-    constructor Create;
     procedure InitParams; override;
     procedure ChangeXFactor(AFactor: Integer);
     procedure ChangeYFactor(AFactor: Integer);
+  public
+    constructor Create;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState); override;
   end;
@@ -128,8 +146,10 @@ type
   { TLineTool }
 
   TLineTool = class(TTwoPointFigureTool)
-    constructor Create;
+  private
     procedure InitParams; override;
+  public
+    constructor Create;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState); override;
   end;
@@ -137,8 +157,10 @@ type
   { TEllipseTool }
 
   TEllipseTool = class(TFilledFigureTool)
-    constructor Create;
+  private
     procedure InitParams; override;
+  public
+    constructor Create;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState); override;
   end;
@@ -146,10 +168,12 @@ type
   { TRegularPolygonTool }
 
   TRegularPolygonTool = class(TFilledFigureTool)
+  private
     FCorners: Integer;
-    constructor Create;
     procedure InitParams; override;
     procedure ChangeCornersNumber(ACorners: Integer);
+  public
+    constructor Create;
     procedure MouseMove(AMousePos: TPoint); override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState); override;
@@ -165,9 +189,8 @@ implementation
 procedure DeselectAllFigures;
 var i: Integer;
 begin
-  for i := Low(Figures) to High(Figures) do Figures[i].FIsSelected := False;
+  for i := Low(Figures) to High(Figures) do Figures[i].IsSelected := False;
 end;
-
 
 procedure RegisterTool(Tool: TTool);
 begin
@@ -239,7 +262,7 @@ var i: Integer;
 begin
   for i := High(Figures) downto Low(Figures) do begin
     with Figures[i] do begin
-      if IsIntersect(ADoubleRect) then FIsSelected := True;
+      if IsIntersect(ADoubleRect) then IsSelected := True;
     end;
   end;
 end;
@@ -251,8 +274,8 @@ begin
   for i := High(Figures) downto Low(Figures) do begin
     with Figures[i] do begin
       if IsPointInside(ADoublePoint) then begin
-        if AMode = Add then FIsSelected := not FIsSelected
-        else FIsSelected := True;
+        if AMode = Add then IsSelected := not IsSelected
+        else IsSelected := True;
         Exit;
       end;
     end;

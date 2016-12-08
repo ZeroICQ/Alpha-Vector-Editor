@@ -19,8 +19,10 @@ type
   { TParameter }
 
   TParameter = class
+  private
     FLabel: TLabel;
     FComponent: TControl;
+  public
     constructor Create;
     destructor Destroy; override;
   end;
@@ -28,43 +30,53 @@ type
   { TLineWidthParameter }
 
   TLineWidthParameter = class(TParameter)
+  private
     FLineWidthChange: TLineWidthChange;
     procedure OnLineWidthChange(Sender: TObject);
+  public
     constructor Create(ALineWidthChange: TLineWidthChange);
   end;
 
   { TLineStyleParameter }
 
   TLineStyleParameter = class(TParameter)
+  private
     FLineStyleChange: TLineStyleChange;
     procedure OnDrawLineStyleItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
     procedure OnLineStyleChange(Sender: TObject);
+  public
     constructor Create(ALineStyleChange: TLineStyleChange);
   end;
 
   { TBrushStyleParameter }
 
   TBrushStyleParameter = class(TParameter)
+  private
     FBrushStyleChange: TBrushStyleChange;
     procedure OnDrawBrushStyleItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
     procedure OnBrushStyleChange(Sender: TObject);
+  public
     constructor Create(ABrushStyleChange: TBrushStyleChange);
   end;
 
   { TCornersNumberParameter }
 
   TCornersNumberParameter = class(TParameter)
+  private
     FCornersNumbersChange: TCornersNumberChange;
     procedure OnCornersNumberChange(Sender: TObject);
+  public
     constructor Create(ACornersNumbersChange: TCornersNumberChange);
   end;
 
   { TFactorParameter }
 
   TFactorParameter = class(TParameter)
+  private
     FFactorChange: TFactorChange;
+  public
     procedure OnFactorChange(Sender: TObject);
     constructor Create(ACaption: String; AFactorChange: TFactorChange;
       AValue: Integer);

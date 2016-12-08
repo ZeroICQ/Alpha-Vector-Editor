@@ -232,7 +232,7 @@ begin
     with ToolIcon do begin
       TransparentColor := clWhite;
       Transparent := True;
-      LoadFromFile(Tools[i].FIcon);
+      LoadFromFile(Tools[i].Icon);
     end;
     with ToolBtn do begin
       Glyph := ToolIcon;

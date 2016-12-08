@@ -12,13 +12,16 @@ type
   { TFigure }
 
   TFigure = class
+  private
     FIsSelected: Boolean;
     FPenColor: TColor;
     FPenStyle: TFPPenStyle;
     FThickness: Integer;
+    procedure DrawFigure(ACanvas: TCanvas); virtual; abstract;
+  public
+    property IsSelected: Boolean read FIsSelected write FIsSelected;
     constructor Create(APenColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer);
     procedure Draw(ACanvas: TCanvas); virtual;
-    procedure DrawFigure(ACanvas: TCanvas); virtual; abstract;
     function GetBounds: TDoubleRect; virtual; abstract;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; virtual; abstract;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; virtual; abstract;
@@ -27,11 +30,13 @@ type
   { TPolyline }
 
   TPolyline = class(TFigure)
+  private
     FVertexes: array of TDoublePoint;
+    procedure DrawFigure(ACanvas: TCanvas); override;
+  public
     constructor Create(ADoublePoint: TDoublePoint; APenColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer);
     procedure AddPoint(ADoublePoint: TDoublePoint);
-    procedure DrawFigure(ACanvas: TCanvas); override;
     function GetBounds: TDoubleRect; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
@@ -40,6 +45,7 @@ type
   { TTwoPointFigure }
 
   TTwoPointFigure = class(TFigure)
+  public
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); virtual; abstract;
     constructor Create(
       APenColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer);
@@ -48,8 +54,10 @@ type
   { TFilledFigure }
 
   TFilledFigure = class(TTwoPointFigure)
+  private
     FBrushColor: TColor;
     FBrushStyle: TFPBrushStyle;
+  public
     constructor Create(APenColor, ABrushColor: TColor; APenStyle: TFPPenStyle;
       AThickness: Integer; AFillStyle: TFPBrushStyle);
     procedure Draw(ACanvas: TCanvas); override;
@@ -58,7 +66,9 @@ type
   { TInscribedFigure }
 
   TInscribedFigure = class(TFilledFigure)
+  private
     FFigureBounds: TDoubleRect;
+  public
     function GetBounds: TDoubleRect; override;
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
     constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor;
@@ -68,7 +78,9 @@ type
   { TRectangle }
 
   TRectangle = class(TInscribedFigure)
+  private
     procedure DrawFigure(ACanvas: TCanvas); override;
+  public
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
   end;
@@ -76,12 +88,14 @@ type
   { TRoundRectangle }
 
   TRoundRectangle = class(TInscribedFigure)
+  private
     FFactorX: Integer;
     FFactorY: Integer;
+    procedure DrawFigure(ACanvas: TCanvas); override;
+  public
     constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle;
       AFactorX, AFactorY: Integer);
-    procedure DrawFigure(ACanvas: TCanvas); override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
   end;
@@ -89,13 +103,15 @@ type
   { TLine }
 
   TLine = class(TTwoPointFigure)
+  private
     FStartPoint: TDoublePoint;
     FEndPoint: TDoublePoint;
+    procedure DrawFigure(ACanvas: TCanvas); override;
+  public
     constructor Create(AMousePos: TDoublePoint; APenColor: TColor;
       ALineStyle: TFPPenStyle; ALineWidth: Integer);
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
     function GetBounds: TDoubleRect; override;
-    procedure DrawFigure(ACanvas: TCanvas); override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
   end;
@@ -103,7 +119,9 @@ type
   { TEllipse }
 
   TEllipse = class(TInscribedFigure)
+  private
     procedure DrawFigure(ACanvas: TCanvas); override;
+  public
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
   end;
@@ -111,20 +129,24 @@ type
   { TSelection }
 
   TSelection = class(TInscribedFigure)
-    constructor Create(ADoublePoint: TDoublePoint);
+  private
     procedure DrawFigure(ACanvas: TCanvas); override;
+  public
+    constructor Create(ADoublePoint: TDoublePoint);
   end;
 
   { TRegularPolygon }
 
   TRegularPolygon = class(TFilledFigure)
+  private
     FCorners: Integer;
     FVertexes: array of TDoublePoint;
     FCenter: TDoublePoint;
     FCirclePoint: TDoublePoint;
+    procedure DrawFigure(ACanvas: TCanvas); override;
+  public
     constructor Create(ACenterPoint: TDoublePoint; APenColor, ABrushColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle; ACorners: Integer);
-    procedure DrawFigure(ACanvas: TCanvas); override;
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
     function GetBounds: TDoubleRect; override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
@@ -133,6 +155,7 @@ type
 
 var
   Figures: array of TFigure;
+
 implementation
 
 { Misc }
@@ -179,9 +202,9 @@ begin
     Result :=
       (abs(A*X + B*Y + C) / sqrt(A**2 + B**2) <= Thickness) and
       (((AStartPoint.X - Thickness < X) and (X < AEndPoint.X + Thickness)) or
-        (AEndPoint.X - Thickness < X) and (X < AStartPoint.X + Thickness)) and
+          (AEndPoint.X - Thickness < X) and (X < AStartPoint.X + Thickness)) and
       (((AStartPoint.Y - Thickness < Y) and (Y < AEndPoint.Y + Thickness)) or
-        (AEndPoint.Y - Thickness < Y) and (Y < AStartPoint.Y + Thickness));
+          (AEndPoint.Y - Thickness < Y) and (Y < AStartPoint.Y + Thickness));
 end;
 
 function PointInsideRect(ADoublePoint: TDoublePoint; ADoubleRect: TDoubleRect): Boolean;
