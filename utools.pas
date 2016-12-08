@@ -49,7 +49,6 @@ type
   TSelectionTool = class(TTool)
   private
     FStartingPoint: TDoublePoint;
-    FIsSelectingArea: Boolean;
     FShift: TShiftState;
     procedure InitParams; override;
   public
@@ -67,7 +66,6 @@ type
   TMagnifierTool = class(TTool)
   private
     FStartingPoint: TDoublePoint;
-    FIsSelectingArea: Boolean;
     FMouseButton: TMouseButton;
     procedure InitParams; override;
   public
@@ -215,14 +213,12 @@ procedure TSelectionTool.MouseDown(AMousePos: TPoint; APenColor,
   ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
   FShift := AShift;
-  FIsSelectingArea := False;
   FFigure := TSelection.Create(DispToWorldCoord(AMousePos));
   FStartingPoint := DispToWorldCoord(AMousePos);
 end;
 
 procedure TSelectionTool.MouseMove(AMousePos: TPoint);
 begin
-  FIsSelectingArea := True;
   (FFigure as TSelection).SetSecondPoint(DispToWorldCoord(AMousePos));
 end;
 
@@ -239,8 +235,7 @@ begin
   SelectionWidth := SelectionBounds.Right - SelectionBounds.Left;
   SelectionHeight := SelectionBounds.Bottom - SelectionBounds.Top;
 
-  if FIsSelectingArea and
-    (SelectionWidth > Delta / Scale) or
+  if (SelectionWidth > Delta / Scale) or
     (SelectionHeight > Delta / Scale)
   then begin
     DeselectAllFigures;
@@ -398,7 +393,6 @@ end;
 procedure TMagnifierTool.MouseDown(AMousePos: TPoint; APenColor,
   ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
 begin
-  FIsSelectingArea := False;
   FMouseButton := AButton;
   FFigure := TSelection.Create(DispToWorldCoord(AMousePos));
   FStartingPoint := DispToWorldCoord(AMousePos);
@@ -406,7 +400,6 @@ end;
 
 procedure TMagnifierTool.MouseMove(AMousePos: TPoint);
 begin
-  FIsSelectingArea := True;
   (FFigure as TSelection).SetSecondPoint(DispToWorldCoord(AMousePos));
 end;
 
@@ -422,8 +415,7 @@ begin
   SelectionWidth := SelectionBounds.Right - SelectionBounds.Left;
   SelectionHeight := SelectionBounds.Bottom - SelectionBounds.Top;
 
-  if FIsSelectingArea and
-    (SelectionWidth > Delta / Scale) and
+  if (SelectionWidth > Delta / Scale) and
     (SelectionHeight > Delta / Scale)
   then begin
     XScale := (DispDimensions.Width) / SelectionWidth;
@@ -439,7 +431,6 @@ begin
     if FMouseButton = mbRight then DecreaseScale;
     AddCanvasOffset((FStartingPoint - DispToWorldCoord(AMousePos)) * Scale);
   end;
-  FIsSelectingArea := False;
   FreeAndNil(FFigure);
 end;
 
