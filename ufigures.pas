@@ -5,23 +5,31 @@ unit UFigures;
 interface
 
 uses
-  UTransform, windows, Classes, SysUtils, Graphics, FPCanvas, LCL, math;
+  Controls, UTransform, windows, Classes, SysUtils, Graphics, FPCanvas, LCL,
+  math, UParameters;
 
 type
-
+  TParams = array of TParameter;
   { TFigure }
 
   TFigure = class
   private
+    FGControl: TGraphicControl;
     FIsSelected: Boolean;
     FPenColor: TColor;
-    FPenStyle: TFPPenStyle;
-    FThickness: Integer;
+    FLineStyle: TFPPenStyle;
+    FLineWidth: Integer;
+    FParams: TParams;
     procedure DrawFigure(ACanvas: TCanvas); virtual; abstract;
+    procedure AddParam(AParam: TParameter);
+    procedure CreateParams; virtual;
+    procedure ChangeLineWidth(AWidth: Integer);
+    procedure ChangeLineStyle(ALineStyle: TFPPenStyle);
   public
+    function GetParams: TParams;
     property IsSelected: Boolean read FIsSelected write FIsSelected;
     constructor Create(APenColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer);
-    procedure Draw(ACanvas: TCanvas); virtual;
+    procedure Draw(AGControl: TGraphicControl); virtual;
     function GetBounds: TDoubleRect; virtual; abstract;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; virtual; abstract;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; virtual; abstract;
@@ -57,10 +65,12 @@ type
   private
     FBrushColor: TColor;
     FBrushStyle: TFPBrushStyle;
+    procedure CreateParams; override;
+    procedure ChangeBrushStyle(ABrushStyle: TFPBrushStyle);
   public
     constructor Create(APenColor, ABrushColor: TColor; APenStyle: TFPPenStyle;
       AThickness: Integer; AFillStyle: TFPBrushStyle);
-    procedure Draw(ACanvas: TCanvas); override;
+    procedure Draw(AGControl: TGraphicControl); override;
   end;
 
   { TInscribedFigure }
@@ -92,6 +102,9 @@ type
     FFactorX: Integer;
     FFactorY: Integer;
     procedure DrawFigure(ACanvas: TCanvas); override;
+    procedure CreateParams; override;
+    procedure ChangeXFactor(AFactor: Integer);
+    procedure ChangeYFactor(AFactor: Integer);
   public
     constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle;
@@ -144,6 +157,9 @@ type
     FCenter: TDoublePoint;
     FCirclePoint: TDoublePoint;
     procedure DrawFigure(ACanvas: TCanvas); override;
+    procedure CreateParams; override;
+    procedure ChangeCornersNumber(ACorners: Integer);
+    procedure UpdateFigure;
   public
     constructor Create(ACenterPoint: TDoublePoint; APenColor, ABrushColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle; ACorners: Integer);
@@ -270,6 +286,33 @@ begin
   ACanvas.RoundRect(WorldToDispCoord(FFigureBounds), FFactorX, FFactorY);
 end;
 
+procedure TRoundRectangle.CreateParams;
+begin
+  Inherited;
+  AddParam(TFactorParameter.Create('Скругление по X: ', @ChangeXFactor, FFactorX));
+  AddParam(TFactorParameter.Create('Скругление по Y: ', @ChangeYFactor, FFactorY));
+end;
+
+procedure TRoundRectangle.ChangeXFactor(AFactor: Integer);
+var i: Integer;
+begin
+  for i := Low(Figures) to High(Figures) do begin
+    if Figures[i].IsSelected then
+      (Figures[i] as TRoundRectangle).FFactorX := AFactor;
+  end;
+  FGControl.Invalidate;
+end;
+
+procedure TRoundRectangle.ChangeYFactor(AFactor: Integer);
+var i: Integer;
+begin
+  for i := Low(Figures) to High(Figures) do begin
+    if Figures[i].IsSelected then
+      (Figures[i] as TRoundRectangle).FFactorY := AFactor;
+  end;
+  FGControl.Invalidate;
+end;
+
 function TRoundRectangle.IsIntersect(ADoubleRect: TDoubleRect): Boolean;
 var
   RoundRect: HRGN;
@@ -334,6 +377,28 @@ begin
 end;
 
 procedure TRegularPolygon.DrawFigure(ACanvas: TCanvas);
+begin
+  UpdateFigure;
+  ACanvas.Polygon(WorldVertexesToDispCoord(FVertexes));
+end;
+
+procedure TRegularPolygon.CreateParams;
+begin
+  Inherited;
+  AddParam(TCornersNumberParameter.Create(@ChangeCornersNumber, FCorners));
+end;
+
+procedure TRegularPolygon.ChangeCornersNumber(ACorners: Integer);
+var i: Integer;
+begin
+  for i := Low(Figures) to High(Figures) do begin
+    if Figures[i].IsSelected then
+      (Figures[i] as TRegularPolygon).FCorners := ACorners;
+  end;
+  FGControl.Invalidate;
+end;
+
+procedure TRegularPolygon.UpdateFigure;
 var
   i: Integer;
   Radius: Double;
@@ -347,7 +412,6 @@ begin
     FVertexes[i].x := FCenter.X + (Radius*sin((i * 2 * pi / FCorners) - TurnAngle));
     FVertexes[i].y := FCenter.Y + (Radius*cos((i * 2 * pi / FCorners) - TurnAngle));
   end;
-  ACanvas.Polygon(WorldVertexesToDispCoord(FVertexes));
 end;
 
 procedure TRegularPolygon.SetSecondPoint(ADoublePoint: TDoublePoint);
@@ -357,6 +421,7 @@ end;
 
 function TRegularPolygon.GetBounds: TDoubleRect;
 begin
+  UpdateFigure;
   Result := GetVertexesBound(FVertexes);
 end;
 
@@ -388,6 +453,22 @@ end;
 
 { TFilledFigure }
 
+procedure TFilledFigure.CreateParams;
+begin
+  Inherited;
+  AddParam(TBrushStyleParameter.Create(@ChangeBrushStyle, FBrushStyle));
+end;
+
+procedure TFilledFigure.ChangeBrushStyle(ABrushStyle: TFPBrushStyle);
+var i: Integer;
+begin
+  for i := Low(Figures) to High(Figures) do begin
+    if Figures[i].IsSelected then
+      (Figures[i] as TFilledFigure).FBrushStyle := ABrushStyle;
+  end;
+  FGControl.Invalidate;
+end;
+
 constructor TFilledFigure.Create(APenColor, ABrushColor: TColor;
   APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle);
 begin
@@ -396,11 +477,56 @@ begin
   FBrushStyle := AFillStyle;
 end;
 
-procedure TFilledFigure.Draw(ACanvas: TCanvas);
+procedure TFilledFigure.Draw(AGControl: TGraphicControl);
 begin
-  ACanvas.Brush.Color := FBrushColor;
-  ACanvas.Brush.Style := FBrushStyle;
+  with AGControl.Canvas do begin
+    Brush.Color := FBrushColor;
+    Brush.Style := FBrushStyle;
+  end;
   Inherited;
+end;
+
+procedure TFigure.AddParam(AParam: TParameter);
+begin
+  SetLength(FParams, Length(FParams) + 1);
+  FParams[High(FParams)] := AParam;
+end;
+
+procedure TFigure.CreateParams;
+begin
+  AddParam(TLineWidthParameter.Create(@ChangeLineWidth, FLineWidth));
+  AddParam(TLineStyleParameter.Create(@ChangeLineStyle, FLineStyle));
+end;
+
+
+
+procedure TFigure.ChangeLineWidth(AWidth: Integer);
+var i: Integer;
+begin
+  for i := Low(Figures) to High(Figures) do begin
+    if Figures[i].IsSelected then
+      Figures[i].FLineWidth := AWidth;
+  end;
+  FGControl.Invalidate;
+end;
+
+procedure TFigure.ChangeLineStyle(ALineStyle: TFPPenStyle);
+var i: Integer;
+begin
+  for i := Low(Figures) to High(Figures) do begin
+    if Figures[i].IsSelected then
+      Figures[i].FLineStyle := ALineStyle;
+  end;
+  FGControl.Invalidate;
+end;
+
+function TFigure.GetParams: TParams;
+var i: Integer;
+begin
+  for i := Low(FParams) to High(FParams ) do FParams[i].Free;
+  FParams := Nil;
+  CreateParams;
+  Result := FParams;
 end;
 
 { TFigure }
@@ -408,33 +534,29 @@ constructor TFigure.Create(APenColor: TColor; APenStyle: TFPPenStyle;
   AThickness: Integer);
 begin
   FPenColor := APenColor;
-  FThickness := AThickness;
-  FPenStyle := APenStyle;
+  FLineWidth := AThickness;
+  FLineStyle := APenStyle;
 end;
 
-procedure TFigure.Draw(ACanvas: TCanvas);
+procedure TFigure.Draw(AGControl: TGraphicControl);
 var FrameCoords: TRect;
 begin
-  with ACanvas, GetBounds do begin
+  FGControl := AGControl;
+  with AGControl.Canvas, GetBounds do begin
     if IsSelected then begin
       Pen.Style := psDash;
-      Pen.Color := clBlue;
+      Pen.Color := clRed;
       Pen.Width := 2;
       FrameCoords := WorldToDispCoord(DoubleRect(TopLeft, BottomRight));
-      FrameCoords.TopLeft -= FThickness + 5;
-      FrameCoords.BottomRight  += FThickness + 5;
+      FrameCoords.TopLeft -= FLineWidth div 2 + 5;
+      FrameCoords.BottomRight  += FLineWidth div 2 + 5;
       Frame(FrameCoords);
-      ACanvas.Pen.Color := clRed;
     end;
-    ACanvas.Pen.Color := FPenColor;
-    ACanvas.Pen.Width := FThickness;
-    ACanvas.Pen.Style := FPenStyle;
-    if IsSelected then begin
-      Brush.Color := RGBToColor(255, 0, 128);
-      Pen.Color := RGBToColor(0, 255, 255);
-    end;
-    DrawFigure(ACanvas);
+    Pen.Color := FPenColor;
+    Pen.Width := FLineWidth;
+    Pen.Style := FLineStyle;
   end;
+  DrawFigure(AGControl.Canvas);
 end;
 
 { TTwoPointFigure }
@@ -473,7 +595,7 @@ function TPolyline.IsPointInside(ADoublePoint: TDoublePoint): Boolean;
 var i: Integer;
 begin
   for i := Low(FVertexes) to High(FVertexes) - 1 do begin
-    if PointInsideSegment(FVertexes[i], FVertexes[i+1], ADoublePoint, FThickness) then
+    if PointInsideSegment(FVertexes[i], FVertexes[i+1], ADoublePoint, FLineWidth) then
       Exit(True);
   end;
   Result := False;
@@ -594,7 +716,7 @@ end;
 
 function TLine.IsPointInside(ADoublePoint: TDoublePoint): Boolean;
 begin
-  Result := PointInsideSegment(FStartPoint, FEndPoint, ADoublePoint, FThickness);
+  Result := PointInsideSegment(FStartPoint, FEndPoint, ADoublePoint, FLineWidth);
 end;
 
 { TSelection }

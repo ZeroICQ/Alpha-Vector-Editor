@@ -348,10 +348,10 @@ procedure TVectorEditor.PaintBoxPaint(Sender: TObject);
 var i:integer;
 begin
   for i := 0 to High(Figures) do begin
-    Figures[i].Draw(PaintBox.Canvas);
+    Figures[i].Draw(PaintBox);
   end;
   if isDrawing and (CurrentTool.GetFigure <> nil) then begin
-    CurrentTool.GetFigure.Draw(PaintBox.Canvas);
+    CurrentTool.GetFigure.Draw(PaintBox);
   end;
   UpdateScale;
   SetScrollBarsPostions;

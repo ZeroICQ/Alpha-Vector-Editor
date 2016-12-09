@@ -23,6 +23,10 @@ type
     FLabel: TLabel;
     FComponent: TControl;
   public
+    procedure SetValue(AWidth: Integer); virtual; abstract;
+    procedure SetEmpty; virtual; abstract;
+    function GetValue: Integer; virtual; abstract;
+    procedure Hide;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -34,7 +38,10 @@ type
     FLineWidthChange: TLineWidthChange;
     procedure OnLineWidthChange(Sender: TObject);
   public
-    constructor Create(ALineWidthChange: TLineWidthChange);
+    procedure SetValue(AWidth: Integer); override;
+    procedure SetEmpty; override;
+    function GetValue: Integer; override;
+    constructor Create(ALineWidthChange: TLineWidthChange; AWidth: Integer);
   end;
 
   { TLineStyleParameter }
@@ -46,7 +53,10 @@ type
       ARect: TRect; State: TOwnerDrawState);
     procedure OnLineStyleChange(Sender: TObject);
   public
-    constructor Create(ALineStyleChange: TLineStyleChange);
+    procedure SetValue(ALineStyle: Integer); override;
+    procedure SetEmpty; override;
+    function GetValue: Integer; override;
+    constructor Create(ALineStyleChange: TLineStyleChange; AStyle: TFPPenStyle);
   end;
 
   { TBrushStyleParameter }
@@ -58,7 +68,10 @@ type
       ARect: TRect; State: TOwnerDrawState);
     procedure OnBrushStyleChange(Sender: TObject);
   public
-    constructor Create(ABrushStyleChange: TBrushStyleChange);
+    procedure SetValue(ABrushStyle: Integer); override;
+    procedure SetEmpty; override;
+    function GetValue: Integer; override;
+    constructor Create(ABrushStyleChange: TBrushStyleChange; AStyle: TFPBrushStyle);
   end;
 
   { TCornersNumberParameter }
@@ -68,7 +81,10 @@ type
     FCornersNumbersChange: TCornersNumberChange;
     procedure OnCornersNumberChange(Sender: TObject);
   public
-    constructor Create(ACornersNumbersChange: TCornersNumberChange);
+    procedure SetValue(ACorners: Integer); override;
+    procedure SetEmpty; override;
+    function GetValue: Integer; override;
+    constructor Create(ACornersNumbersChange: TCornersNumberChange; ACorners: Integer);
   end;
 
   { TFactorParameter }
@@ -77,12 +93,15 @@ type
   private
     FFactorChange: TFactorChange;
   public
+    procedure SetValue(AFactor: Integer); override;
+    procedure SetEmpty; override;
+    function GetValue: Integer; override;
     procedure OnFactorChange(Sender: TObject);
     constructor Create(ACaption: String; AFactorChange: TFactorChange;
       AValue: Integer);
   end;
 
-  procedure ShowParams(APanel: TPanel);
+  procedure ShowParams(AParams: array of TParameter; APanel: TPanel);
 
 var
   Params: array of TParameter;
@@ -94,11 +113,11 @@ uses
 
 { Misc }
 
-procedure ShowParams(APanel: TPanel);
+procedure ShowParams(AParams: array of TParameter; APanel: TPanel);
 var i: Integer;
 begin
-  for i := 0 to High(Params) do begin
-    with Params[i] do begin
+  for i := Low(AParams) to High(AParams) do begin
+    with AParams[i] do begin
       FLabel.Top := i * 50;
       FLabel.Left := 2;
       FLabel.Parent := APanel;
@@ -110,6 +129,23 @@ begin
 end;
 
 { TFactorParameter }
+
+procedure TFactorParameter.SetValue(AFactor: Integer);
+begin
+  FFactorChange(AFactor);
+end;
+
+procedure TFactorParameter.SetEmpty;
+begin
+  with FComponent as TSpinEdit do begin
+    Value := MinValue;
+  end;
+end;
+
+function TFactorParameter.GetValue: Integer;
+begin
+  Result := (FComponent as TSpinEdit).Value;
+end;
 
 procedure TFactorParameter.OnFactorChange(Sender: TObject);
 begin
@@ -143,8 +179,25 @@ begin
   end;
 end;
 
+procedure TCornersNumberParameter.SetValue(ACorners: Integer);
+begin
+  FCornersNumbersChange(ACorners);
+end;
+
+procedure TCornersNumberParameter.SetEmpty;
+begin
+  with FComponent as TSpinEdit do begin
+    Value := MinValue;
+  end;
+end;
+
+function TCornersNumberParameter.GetValue: Integer;
+begin
+  Result := (FComponent as TSpinEdit).Value;
+end;
+
 constructor TCornersNumberParameter.Create(
-  ACornersNumbersChange: TCornersNumberChange);
+  ACornersNumbersChange: TCornersNumberChange; ACorners: Integer);
 begin
   Inherited Create;
   FCornersNumbersChange := ACornersNumbersChange;
@@ -153,7 +206,7 @@ begin
   with FComponent as TSpinEdit do begin
     MaxValue := 15;
     MinValue := 3;
-    Value := 3;
+    Value := ACorners;
     Font.Size := 11;
     Alignment := taRightJustify;
     Width := 64;
@@ -197,7 +250,25 @@ begin
   end;
 end;
 
-constructor TBrushStyleParameter.Create(ABrushStyleChange: TBrushStyleChange);
+procedure TBrushStyleParameter.SetValue(ABrushStyle: Integer);
+begin
+  FBrushStyleChange(TFPBrushStyle(ABrushStyle));
+end;
+
+procedure TBrushStyleParameter.SetEmpty;
+begin
+  with FComponent as TComboBox do begin
+      ItemIndex := 0;
+  end;
+end;
+
+function TBrushStyleParameter.GetValue: Integer;
+begin
+  Result := (FComponent as TComboBox).ItemIndex;
+end;
+
+constructor TBrushStyleParameter.Create(ABrushStyleChange: TBrushStyleChange;
+  AStyle: TFPBrushStyle);
 var i: Integer;
 begin
   Inherited Create;
@@ -208,7 +279,7 @@ begin
     for i := 0 to 7 do Items.Add('');
     Font.Size := 10;
     Width := 130;
-    ItemIndex := 0;
+    ItemIndex := ord(AStyle);
     ReadOnly := True;
     AutoSelect := False;
     ItemHeight := 20;
@@ -249,7 +320,25 @@ begin
   end;
 end;
 
-constructor TLineStyleParameter.Create(ALineStyleChange: TLineStyleChange);
+procedure TLineStyleParameter.SetValue(ALineStyle: Integer);
+begin
+  FLineStyleChange(TFPPenStyle(ALineStyle));
+end;
+
+procedure TLineStyleParameter.SetEmpty;
+begin
+  with FComponent as TComboBox do begin
+    ItemIndex := 0;
+  end;
+end;
+
+function TLineStyleParameter.GetValue: Integer;
+begin
+  Result := (FComponent as TComboBox).ItemIndex;
+end;
+
+constructor TLineStyleParameter.Create(ALineStyleChange: TLineStyleChange;
+  AStyle: TFPPenStyle);
 var i: Integer;
 begin
   Inherited Create;
@@ -261,7 +350,7 @@ begin
     Style := csOwnerDrawFixed;
     ReadOnly := True;
     Width := 130;
-    ItemIndex := 0;
+    ItemIndex := ord(AStyle);
     ItemHeight := 20;
     OnDrawItem := @OnDrawLineStyleItem;
     OnChange := @OnLineStyleChange;
@@ -269,6 +358,12 @@ begin
 end;
 
 { TParameter }
+
+procedure TParameter.Hide;
+begin
+  FComponent.Parent := nil;
+  FLabel.Parent := nil;
+end;
 
 constructor TParameter.Create;
 begin
@@ -291,7 +386,25 @@ begin
   FLineWidthChange((Sender as TSpinEdit).Value);
 end;
 
-constructor TLineWidthParameter.Create(ALineWidthChange: TLineWidthChange);
+procedure TLineWidthParameter.SetValue(AWidth: Integer);
+begin
+  (FComponent as TSpinEdit).Value := AWidth;
+  FLineWidthChange(AWidth);
+end;
+
+procedure TLineWidthParameter.SetEmpty;
+begin
+  with FComponent as TSpinEdit do begin
+    Value := MinValue;
+  end;
+end;
+
+function TLineWidthParameter.GetValue: Integer;
+begin
+  Result := (FComponent as TSpinEdit).Value;
+end;
+
+constructor TLineWidthParameter.Create(ALineWidthChange: TLineWidthChange; AWidth: Integer);
 begin
   Inherited Create;
   FLineWidthChange := ALineWidthChange;
@@ -300,7 +413,7 @@ begin
   with FComponent as TSpinEdit do begin
     MaxValue := 500;
     MinValue := 1;
-    Value := 3;
+    Value := AWidth;
     Font.Size := 11;
     Alignment := taRightJustify;
     Width := 64;

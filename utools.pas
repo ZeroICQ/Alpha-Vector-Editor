@@ -11,6 +11,7 @@ uses
 type
 
   TSelectionMode = (Select, Add);
+  TIntArr = array of Integer;
 
   { TTool }
 
@@ -49,7 +50,9 @@ type
   TSelectionTool = class(TTool)
   private
     FStartingPoint: TDoublePoint;
+    FCommonParams: array of TParameter;
     FShift: TShiftState;
+    procedure CrossParams(AParams: TParams);
     procedure InitParams; override;
   public
     constructor Create;
@@ -184,6 +187,15 @@ implementation
 
 { Misc }
 
+function IsInArray(i: Integer; AArr: TIntArr): Boolean;
+var j: Integer;
+begin
+  for j := Low(AArr) to High(AArr) do begin
+    if i = AArr[j] then Exit(True);
+  end;
+  Result := False;
+end;
+
 procedure DeselectAllFigures;
 var i: Integer;
 begin
@@ -204,9 +216,59 @@ begin
   FIcon := 'img/selection.bmp';
 end;
 
-procedure TSelectionTool.InitParams;
+procedure TSelectionTool.CrossParams(AParams: TParams);
+var i, j: Integer;
+  IsFound: Boolean;
+  IndexesToDelete: array of Integer;
+  TempParams: TParams;
 begin
-  //ничего
+  if Length(FCommonParams) = 0 then begin
+    FCommonParams := AParams;
+    Exit;
+  end;
+  //ищем что удалить
+  for i := Low(FCommonParams) to High(FCommonParams) do begin
+    for j := Low(AParams) to High(AParams) do begin
+      IsFound := False;
+      if FCommonParams[i].ClassType = AParams[j].ClassType then begin
+        IsFound := True;
+        if not (FCommonParams[i].GetValue = AParams[j].GetValue) then
+          FCommonParams[i].SetEmpty;
+          Break;
+      end;
+    end;
+    if not IsFound then begin
+      SetLength(IndexesToDelete, Length(IndexesToDelete) + 1);
+      IndexesToDelete[High(IndexesToDelete)] := i;
+    end;
+  end;
+  //удаляем
+  SetLength(TempParams, Length(FCommonParams) - Length(IndexesToDelete));
+  j := Low(TempParams);
+  for i := Low(FCommonParams) to High(FCommonParams) do begin
+    if IsInArray(i, IndexesToDelete) then Continue;
+    TempParams[j] := FCommonParams[i];
+    j += 1;
+  end;
+  FCommonParams := TempParams;
+end;
+
+procedure TSelectionTool.InitParams;
+var
+  i: Integer;
+begin
+  //поиск праметров у фигур
+  for i := Low(FCommonParams) to High(FCommonParams) do begin
+    FCommonParams[i].Hide;
+  end;
+  FCommonParams := Nil;
+
+  for i := Low(Figures) to High(Figures) do begin
+    if Figures[i].IsSelected then begin
+      CrossParams(Figures[i].GetParams);
+    end;
+  end;
+  ShowParams(FCommonParams, FPanel);
 end;
 
 procedure TSelectionTool.MouseDown(AMousePos: TPoint; APenColor,
@@ -250,6 +312,7 @@ begin
     SelectFigure(FStartingPoint, SelectionMode);
   end;
   FreeAndNil(FFigure);
+  Init(FPanel);
 end;
 
 procedure TSelectionTool.SelectFigures(ADoubleRect: TDoubleRect);
@@ -323,8 +386,8 @@ end;
 procedure TRegularPolygonTool.InitParams;
 begin
   Inherited;
-  AddParam(TCornersNumberParameter.Create(@ChangeCornersNumber));
   FCorners := 3;
+  AddParam(TCornersNumberParameter.Create(@ChangeCornersNumber, FCorners));
 end;
 
 procedure TRegularPolygonTool.ChangeCornersNumber(ACorners: Integer);
@@ -355,17 +418,17 @@ end;
 procedure TFilledFigureTool.InitParams;
 begin
   Inherited;
-  AddParam(TBrushStyleParameter.Create(@ChangeBrushStyle));
   FBrushStyle := bsSolid;
+  AddParam(TBrushStyleParameter.Create(@ChangeBrushStyle, FBrushStyle));
 end;
 
 { TFigureTool }
 procedure TFigureTool.InitParams;
 begin
-  AddParam(TLineWidthParameter.Create(@ChangeLineWidth));
-  AddParam(TLineStyleParameter.Create(@ChangeLineStyle));
   FLineWidth := 3;
   FLineStyle := psSolid;
+  AddParam(TLineWidthParameter.Create(@ChangeLineWidth, FLineWidth));
+  AddParam(TLineStyleParameter.Create(@ChangeLineStyle, FLineStyle));
 end;
 
 procedure TFigureTool.ChangeLineWidth(AWidth: Integer);
@@ -474,7 +537,7 @@ begin
   Params := Nil;
   FPanel := APanel;
   InitParams;
-  ShowParams(APanel);;
+  ShowParams(Params, APanel);;
 end;
 
 function TTool.GetFigure: TFigure;
