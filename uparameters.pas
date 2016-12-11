@@ -105,6 +105,7 @@ type
 
 var
   Params: array of TParameter;
+  FigureCommonParams: array of TParameter;
 
 implementation
 

@@ -26,6 +26,7 @@ type
     procedure ChangeLineWidth(AWidth: Integer);
     procedure ChangeLineStyle(ALineStyle: TFPPenStyle);
   public
+    procedure Move(ADisplacement: TDoublePoint); virtual; abstract;
     function GetParams: TParams;
     property IsSelected: Boolean read FIsSelected write FIsSelected;
     constructor Create(APenColor: TColor; APenStyle: TFPPenStyle; AThickness: Integer);
@@ -42,6 +43,7 @@ type
     FVertexes: array of TDoublePoint;
     procedure DrawFigure(ACanvas: TCanvas); override;
   public
+    procedure Move(ADisplacement: TDoublePoint); override;
     constructor Create(ADoublePoint: TDoublePoint; APenColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer);
     procedure AddPoint(ADoublePoint: TDoublePoint);
@@ -79,6 +81,7 @@ type
   private
     FFigureBounds: TDoubleRect;
   public
+    procedure Move(ADisplacement: TDoublePoint); override;
     function GetBounds: TDoubleRect; override;
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
     constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor;
@@ -121,6 +124,7 @@ type
     FEndPoint: TDoublePoint;
     procedure DrawFigure(ACanvas: TCanvas); override;
   public
+    procedure Move(ADisplacement: TDoublePoint); override;
     constructor Create(AMousePos: TDoublePoint; APenColor: TColor;
       ALineStyle: TFPPenStyle; ALineWidth: Integer);
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
@@ -161,6 +165,7 @@ type
     procedure ChangeCornersNumber(ACorners: Integer);
     procedure UpdateFigure;
   public
+    procedure Move(ADisplacement: TDoublePoint); override;
     constructor Create(ACenterPoint: TDoublePoint; APenColor, ABrushColor: TColor;
       APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle; ACorners: Integer);
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
@@ -340,6 +345,12 @@ end;
 
 { TInscribedFigure }
 
+procedure TInscribedFigure.Move(ADisplacement: TDoublePoint);
+begin
+  FFigureBounds.BottomRight += ADisplacement;
+  FFigureBounds.TopLeft += ADisplacement;
+end;
+
 function TInscribedFigure.GetBounds: TDoubleRect;
 begin
   with Result do begin
@@ -412,6 +423,12 @@ begin
     FVertexes[i].x := FCenter.X + (Radius*sin((i * 2 * pi / FCorners) - TurnAngle));
     FVertexes[i].y := FCenter.Y + (Radius*cos((i * 2 * pi / FCorners) - TurnAngle));
   end;
+end;
+
+procedure TRegularPolygon.Move(ADisplacement: TDoublePoint);
+begin
+  FCenter += ADisplacement;
+  FCirclePoint += ADisplacement;
 end;
 
 procedure TRegularPolygon.SetSecondPoint(ADoublePoint: TDoublePoint);
@@ -586,6 +603,14 @@ begin
   ACanvas.Polyline(WorldVertexesToDispCoord(FVertexes));
 end;
 
+procedure TPolyline.Move(ADisplacement: TDoublePoint);
+var i: Integer;
+begin
+  for i := Low(FVertexes) to High(FVertexes) do begin
+    FVertexes[i] += ADisplacement;
+  end;
+end;
+
 function TPolyline.GetBounds: TDoubleRect;
 begin
   Result := GetVertexesBound(FVertexes);
@@ -702,6 +727,12 @@ end;
 procedure TLine.DrawFigure(ACanvas: TCanvas);
 begin
   ACanvas.Line(WorldToDispCoord(FStartPoint), WorldToDispCoord(FEndPoint));
+end;
+
+procedure TLine.Move(ADisplacement: TDoublePoint);
+begin
+  FStartPoint += ADisplacement;
+  FEndPoint += ADisplacement;
 end;
 
 function TLine.IsIntersect(ADoubleRect: TDoubleRect): Boolean;

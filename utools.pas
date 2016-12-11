@@ -45,12 +45,19 @@ type
     procedure MouseMove(AMousePos: TPoint); override;
   end;
 
+  { TMoveTool }
+
+  TMoveTool = class(THandTool)
+  public
+    constructor Create;
+    procedure MouseMove(AMousePos: TPoint); override;
+  end;
+
   { TSelectionTool }
 
   TSelectionTool = class(TTool)
   private
     FStartingPoint: TDoublePoint;
-    FCommonParams: array of TParameter;
     FShift: TShiftState;
     procedure CrossParams(AParams: TParams);
     procedure InitParams; override;
@@ -208,6 +215,28 @@ begin
   Tools[High(Tools)] := Tool;
 end;
 
+{ TMoveTool }
+
+constructor TMoveTool.Create;
+begin
+  Inherited;
+  FIcon := 'img/move.bmp';
+end;
+
+procedure TMoveTool.MouseMove(AMousePos: TPoint);
+var
+  i: Integer;
+  Displacement: TDoublePoint;
+begin
+  Displacement := (DispToWorldCoord(AMousePos) - FStartingPoint);
+  FStartingPoint := DispToWorldCoord(AMousePos);
+
+  for i := Low(Figures) to High(Figures) do begin
+    if Figures[i].IsSelected then
+      Figures[i].Move(Displacement);
+  end;
+end;
+
 { TSelectionTool }
 
 constructor TSelectionTool.Create;
@@ -222,18 +251,18 @@ var i, j: Integer;
   IndexesToDelete: array of Integer;
   TempParams: TParams;
 begin
-  if Length(FCommonParams) = 0 then begin
-    FCommonParams := AParams;
+  if Length(FigureCommonParams) = 0 then begin
+    FigureCommonParams := AParams;
     Exit;
   end;
   //ищем что удалить
-  for i := Low(FCommonParams) to High(FCommonParams) do begin
+  for i := Low(FigureCommonParams) to High(FigureCommonParams) do begin
     for j := Low(AParams) to High(AParams) do begin
       IsFound := False;
-      if FCommonParams[i].ClassType = AParams[j].ClassType then begin
+      if FigureCommonParams[i].ClassType = AParams[j].ClassType then begin
         IsFound := True;
-        if not (FCommonParams[i].GetValue = AParams[j].GetValue) then
-          FCommonParams[i].SetEmpty;
+        if not (FigureCommonParams[i].GetValue = AParams[j].GetValue) then
+          FigureCommonParams[i].SetEmpty;
           Break;
       end;
     end;
@@ -243,14 +272,14 @@ begin
     end;
   end;
   //удаляем
-  SetLength(TempParams, Length(FCommonParams) - Length(IndexesToDelete));
+  SetLength(TempParams, Length(FigureCommonParams) - Length(IndexesToDelete));
   j := Low(TempParams);
-  for i := Low(FCommonParams) to High(FCommonParams) do begin
+  for i := Low(FigureCommonParams) to High(FigureCommonParams) do begin
     if IsInArray(i, IndexesToDelete) then Continue;
-    TempParams[j] := FCommonParams[i];
+    TempParams[j] := FigureCommonParams[i];
     j += 1;
   end;
-  FCommonParams := TempParams;
+  FigureCommonParams := TempParams;
 end;
 
 procedure TSelectionTool.InitParams;
@@ -258,17 +287,17 @@ var
   i: Integer;
 begin
   //поиск праметров у фигур
-  for i := Low(FCommonParams) to High(FCommonParams) do begin
-    FCommonParams[i].Hide;
+  for i := Low(FigureCommonParams) to High(FigureCommonParams) do begin
+    FigureCommonParams[i].Hide;
   end;
-  FCommonParams := Nil;
+  FigureCommonParams := Nil;
 
   for i := Low(Figures) to High(Figures) do begin
     if Figures[i].IsSelected then begin
       CrossParams(Figures[i].GetParams);
     end;
   end;
-  ShowParams(FCommonParams, FPanel);
+  ShowParams(FigureCommonParams, FPanel);
 end;
 
 procedure TSelectionTool.MouseDown(AMousePos: TPoint; APenColor,
@@ -531,6 +560,10 @@ end;
 procedure TTool.Init(APanel: TPanel);
 var i: Integer;
 begin
+  for i := Low(FigureCommonParams) to High(FigureCommonParams) do begin
+    FigureCommonParams[i].Hide;
+  end;
+
   for i := Low(Params) to High(Params) do begin
     Params[i].Free;
   end;
@@ -640,6 +673,7 @@ end;
 initialization
 
 RegisterTool(THandTool.Create);
+RegisterTool(TMoveTool.Create);
 RegisterTool(TMagnifierTool.Create);
 RegisterTool(TSelectionTool.Create);
 RegisterTool(TPolylineTool.Create);
