@@ -10,7 +10,7 @@ uses
 
 type
 
-  TSelectionMode = (Select, Add);
+  TSelectionMode = (smSelect, smAdd);
   TIntArr = array of Integer;
 
   { TTool }
@@ -333,10 +333,10 @@ begin
     SelectFigures(SelectionBounds);
   end
   else begin
-    if (ssCtrl in FShift) then SelectionMode := Add
+    if (ssCtrl in FShift) then SelectionMode := smAdd
     else begin
       DeselectAllFigures;
-      SelectionMode := Select;
+      SelectionMode := smSelect;
     end;
     SelectFigure(FStartingPoint, SelectionMode);
   end;
@@ -361,7 +361,7 @@ begin
   for i := High(Figures) downto Low(Figures) do begin
     with Figures[i] do begin
       if IsPointInside(ADoublePoint) then begin
-        if AMode = Add then IsSelected := not IsSelected
+        if AMode = smAdd then IsSelected := not IsSelected
         else IsSelected := True;
         Exit;
       end;

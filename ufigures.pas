@@ -563,7 +563,7 @@ begin
     if IsSelected then begin
       Pen.Style := psDash;
       Pen.Color := clRed;
-      Pen.Width := 2;
+      Pen.Width := 3;
       FrameCoords := WorldToDispCoord(DoubleRect(TopLeft, BottomRight));
       FrameCoords.TopLeft -= FLineWidth div 2 + 5;
       FrameCoords.BottomRight  += FLineWidth div 2 + 5;
