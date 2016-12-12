@@ -82,7 +82,7 @@ type
     procedure ClearCanvas;
     procedure SetScrollBarsPostions;
     procedure SaveFigure(Figure: TFigure);
-    procedure RedefineImageBounds(AFigureBounds: TDoubleRect);
+    procedure RedefineImageBounds;
     procedure UpdateScale;
     procedure VerticalScrollBarChange(Sender: TObject);
     procedure UpdateDimensions;
@@ -121,23 +121,27 @@ begin
   if Figure <> nil then begin
     SetLength(Figures, Length(Figures) + 1);
     Figures[High(Figures)] := Figure;
-    RedefineImageBounds(Figure.GetBounds);
   end;
 end;
 
-procedure TVectorEditor.RedefineImageBounds(AFigureBounds: TDoubleRect);
+procedure TVectorEditor.RedefineImageBounds;
+var i: Integer;
 begin
-  if Length(Figures) = 1 then begin
-    ImageBounds.Left := AFigureBounds.Left;
-    ImageBounds.Top := AFigureBounds.Top;
-    ImageBounds.Right := AFigureBounds.Right;
-    ImageBounds.Bottom := AFigureBounds.Bottom;
-  end
-  else begin
-    ImageBounds.Left := Min(ImageBounds.left, AFigureBounds.Left);
-    ImageBounds.Top := Min(ImageBounds.Top, AFigureBounds.Top);
-    ImageBounds.Right := Max(ImageBounds.Right, AFigureBounds.Right);
-    ImageBounds.Bottom := Max(ImageBounds.Bottom, AFigureBounds.Bottom);
+  for i := Low(Figures) to High(Figures) do begin
+      with Figures[i].GetBounds do begin
+        if i = 0 then begin
+          ImageBounds.Left := Left;
+          ImageBounds.Top := Top;
+          ImageBounds.Right := Right;
+          ImageBounds.Bottom := Bottom;
+        end
+        else begin
+          ImageBounds.Left := Min(ImageBounds.left, Left);
+          ImageBounds.Top := Min(ImageBounds.Top, Top);
+          ImageBounds.Right := Max(ImageBounds.Right, Right);
+          ImageBounds.Bottom := Max(ImageBounds.Bottom, Bottom);
+        end;
+      end;
   end;
 end;
 
@@ -347,6 +351,7 @@ end;
 procedure TVectorEditor.PaintBoxPaint(Sender: TObject);
 var i:integer;
 begin
+  RedefineImageBounds;
   for i := 0 to High(Figures) do begin
     Figures[i].Draw(PaintBox);
   end;
