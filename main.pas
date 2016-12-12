@@ -5,9 +5,9 @@ unit main;
 interface
 
 uses
-  Classes, Contnrs, SysUtils, FileUtil, Forms, Controls, Graphics, Math,
-  Dialogs, Menus, ExtCtrls, StdCtrls, aboutprogram, LCLType, Spin, ComCtrls,
-  Buttons, ActnList, Grids, UFigures, UTools, UTransform, Types;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Math, Dialogs, Menus,
+  ExtCtrls, StdCtrls, aboutprogram, LCLType, Spin, Buttons, ActnList, Grids,
+  UFigures, UTools, UTransform, Types;
 
 type
 
