@@ -259,7 +259,7 @@ end;
 procedure TBrushStyleParameter.SetEmpty;
 begin
   with FComponent as TComboBox do begin
-      ItemIndex := 0;
+    ItemIndex := 0;
   end;
 end;
 

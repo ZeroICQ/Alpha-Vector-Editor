@@ -98,6 +98,13 @@ type
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
   end;
 
+  TRadiusParam = class (TParam)
+  private
+    FRadius: Integer;
+  public
+    property Radius: Integer...;
+  end;
+
   { TRoundRectangle }
 
   TRoundRectangle = class(TInscribedFigure)
@@ -114,6 +121,9 @@ type
       AFactorX, AFactorY: Integer);
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
+
+    //var RadiusX: RadiusParam;
+    //function GetParams: TParamArray;
   end;
 
   { TLine }
@@ -166,8 +176,10 @@ type
     procedure UpdateFigure;
   public
     procedure Move(ADisplacement: TDoublePoint); override;
-    constructor Create(ACenterPoint: TDoublePoint; APenColor, ABrushColor: TColor;
-      APenStyle: TFPPenStyle; AThickness: Integer; AFillStyle: TFPBrushStyle; ACorners: Integer);
+    constructor Create(
+      ACenterPoint: TDoublePoint; APenColor, ABrushColor: TColor;
+      APenStyle: TFPPenStyle; AThickness: Integer;
+      AFillStyle: TFPBrushStyle; ACorners: Integer);
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
     function GetBounds: TDoubleRect; override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
