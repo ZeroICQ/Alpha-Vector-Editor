@@ -258,8 +258,8 @@ begin
   //ищем что удалить
   for i := Low(FigureCommonParams) to High(FigureCommonParams) do begin
     for j := Low(AParams) to High(AParams) do begin
-      IsFound := False;
-      if FigureCommonParams[i].ClassType = AParams[j].ClassType then begin
+      IsFound := FigureCommonParams[i].ClassType = AParams[j].ClassType;
+      if IsFound then begin
         IsFound := True;
         if not (FigureCommonParams[i].GetValue = AParams[j].GetValue) then
           FigureCommonParams[i].SetEmpty;
