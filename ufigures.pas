@@ -70,7 +70,6 @@ type
   private
     FFigureBounds: TDoubleRect;
   public
-
     procedure Move(ADisplacement: TDoublePoint); override;
     function GetBounds: TDoubleRect; override;
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
@@ -631,17 +630,15 @@ end;
 
 { TSelection }
 procedure TSelection.DrawFigure(ACanvas: TCanvas);
-var
-  DispBounds: TRect;
 begin
-  DispBounds := WorldToDispCoord(FFigureBounds);
-  ACanvas.Frame(DispBounds);
+  ACanvas.Frame(WorldToDispCoord(FFigureBounds));
 end;
 
 constructor TSelection.Create(ADoublePoint: TDoublePoint);
 begin
   Inherited Create(ADoublePoint, clBlack, clWhite);
-  //!!!установить как-то дефолтные параметры
+  FLineWidth.SetValue(1);
+  FLineStyle.SetValue(psDash);
 end;
 
 end.
