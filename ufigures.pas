@@ -24,7 +24,7 @@ type
     procedure AddParam(AParam: TParam);
     function GetParams: TParamArr;
     procedure Move(ADisplacement: TDoublePoint); virtual; abstract;
-    procedure Draw(AGControl: TGraphicControl); virtual;
+    procedure Draw(ACanvas: TCanvas); virtual;
     function GetBounds: TDoubleRect; virtual; abstract;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; virtual; abstract;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; virtual; abstract;
@@ -60,7 +60,7 @@ type
     FBrushColor: TColor;
     FBrushStyle: TParamBrushStyle;
   public
-    procedure Draw(AGControl: TGraphicControl); override;
+    procedure Draw(ACanvas: TCanvas); override;
     constructor Create(APenColor, ABrushColor: TColor);
   end;
 
@@ -89,8 +89,8 @@ type
 
   TRoundRectangle = class(TInscribedFigure)
   private
-    FXCoef: TParamInteger;
-    FYCoef: TParamInteger;
+    FXCoef: TParamXCoeff;
+    FYCoef: TParamYCoeff;
   public
     procedure DrawFigure(ACanvas: TCanvas); override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
@@ -257,9 +257,9 @@ constructor TRoundRectangle.Create(ADoublePoint: TDoublePoint; APenColor,
   ABrushColor: TColor);
 begin
   Inherited Create(ADoublePoint, APenColor, ABrushColor);
-  FXCoef := TParamInteger.Create;
+  FXCoef := TParamXCoeff.Create;
   AddParam(FXCoef);
-  FYCoef := TParamInteger.Create;
+  FYCoef := TParamYCoeff.Create;
   AddParam(FYCoef);
 end;
 
@@ -412,9 +412,9 @@ begin
   AddParam(FBrushStyle);
 end;
 
-procedure TFilledFigure.Draw(AGControl: TGraphicControl);
+procedure TFilledFigure.Draw(ACanvas: TCanvas);
 begin
-  with AGControl.Canvas do begin
+  with ACanvas do begin
     Brush.Color := FBrushColor;
     Brush.Style := FBrushStyle.Style;
   end;
@@ -443,12 +443,12 @@ begin
   AddParam(FLineStyle);
 end;
 
-procedure TFigure.Draw(AGControl: TGraphicControl);
+procedure TFigure.Draw(ACanvas: TCanvas);
 var
   FrameCoords: TRect;
   i: Integer;
 begin
-  with AGControl.Canvas, GetBounds do begin
+  with ACanvas, GetBounds do begin
     if IsSelected then begin
       Pen.Style := psDash;
       Pen.Color := clRed;
@@ -459,9 +459,9 @@ begin
       Frame(FrameCoords);
     end;
     Pen.Color := FPenColor;
-    for i := Low(FParams) to High(FParams) do FParams[i].Apply(AGControl.Canvas);
+    for i := Low(FParams) to High(FParams) do FParams[i].Apply(ACanvas);
   end;
-  DrawFigure(AGControl.Canvas);
+  DrawFigure(ACanvas);
 end;
 
 { TPolyline }

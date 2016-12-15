@@ -28,7 +28,7 @@ type
     procedure AddParamEditor(AParamEditor: TParamEditor);
     function GetFigure: TFigure;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); virtual; abstract;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); virtual; abstract;
     procedure MouseMove(AMousePos: TPoint); virtual; abstract;
     procedure MouseUp(AMousePos: TPoint); virtual;
   end;
@@ -40,7 +40,7 @@ type
     FStartingPoint: TDoublePoint;
   public
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); override;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
     procedure MouseMove(AMousePos: TPoint); override;
     constructor Create;
   end;
@@ -59,11 +59,13 @@ type
   private
     FStartingPoint: TDoublePoint;
     FShift: TShiftState;
-    //procedure CrossParams(AParams: TParams);
-    //procedure InitParams; override;
+    FCommonParams: array of array of TParam;
+    FGControl: TGraphicControl;
+    procedure CrossParams(var AParams: TParamArr);
+    procedure InitParams; override;
   public
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); override;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
      procedure MouseMove(AMousePos: TPoint); override;
      procedure MouseUp(AMousePos: TPoint); override;
      procedure SelectFigures(ADoubleRect: TDoubleRect);
@@ -79,7 +81,7 @@ type
     FMouseButton: TMouseButton;
   public
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); override;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
     procedure MouseMove(AMousePos: TPoint); override;
     procedure MouseUp(AMousePos: TPoint); override;
     constructor Create;
@@ -112,7 +114,7 @@ type
   TPolylineTool = class(TFigureTool)
   public
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); override;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
     procedure MouseMove(AMousePos: TPoint); override;
     constructor Create;
   end;
@@ -122,7 +124,7 @@ type
   TRectangleTool = class(TFilledFigureTool)
   public
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); override;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
     constructor Create;
   end;
 
@@ -133,7 +135,7 @@ type
     procedure InitParams; override;
   public
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); override;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
     constructor Create;
   end;
 
@@ -142,7 +144,7 @@ type
   TLineTool = class(TTwoPointFigureTool)
   public
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); override;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
     constructor Create;
   end;
 
@@ -151,7 +153,7 @@ type
   TEllipseTool = class(TFilledFigureTool)
   public
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); override;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
     constructor Create;
   end;
 
@@ -163,7 +165,7 @@ type
   public
     procedure MouseMove(AMousePos: TPoint); override;
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
-      AButton: TMouseButton; AShift: TShiftState); override;
+      AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
     constructor Create;
   end;
 
@@ -173,6 +175,17 @@ var
 implementation
 
 { Misc }
+procedure Push(var AArr: TParamArr; var AElement: TParam);
+begin
+  SetLength(AArr, Length(AArr) + 1);
+  AArr[High(AArr)] := AElement;
+end;
+
+procedure Push(var AArr: TIntArr; const AElement: Integer);
+begin
+  SetLength(AArr, Length(AArr) + 1);
+  AArr[High(AArr)] := AElement;
+end;
 
 function IsInArray(i: Integer; AArr: TIntArr): Boolean;
 var j: Integer;
@@ -242,9 +255,9 @@ begin
       IsFound := FigureCommonParams[i].ClassType = AParams[j].ClassType;
       if IsFound then begin
         IsFound := True;
-        if not (FigureCommonParams[i].GetValue = AParams[j].GetValue) then
-          FigureCommonParams[i].SetEmpty;
-          Break;
+       !!! if not (FigureCommonParams[i].GetValue = AParams[j].GetValue) then
+       !!!   FigureCommonParams[i].SetEmpty;
+       !!!   Break;
       end;
     end;
     if not IsFound then begin
@@ -263,31 +276,85 @@ begin
   FigureCommonParams := TempParams;
 end;
 }
-
-{procedure TSelectionTool.InitParams;
+procedure TSelectionTool.CrossParams(var AParams: TParamArr);
 var
-  i: Integer;
+  i, j: Integer;
+  IsFound: Boolean;
+  TempParams: array of array of TParam;
+  DiffIndexes: TIntArr;
 begin
-  //поиск праметров у фигур
-  for i := Low(FigureCommonParams) to High(FigureCommonParams) do begin
-    FigureCommonParams[i].Hide;
-  end;
-  FigureCommonParams := Nil;
-
-  for i := Low(Figures) to High(Figures) do begin
-    if Figures[i].IsSelected then begin
-      CrossParams(Figures[i].GetParams);
+  //находим пересечение
+  for i := Low(FCommonParams) to High(FCommonParams) do begin
+    IsFound := False;
+    for j := Low(AParams) to High(AParams) do begin
+      if FCommonParams[i, 0].ClassType = AParams[j].ClassType then begin
+        IsFound := True;
+        Push(FCommonParams[i], AParams[j]);
+      end;
+    end;
+    //запоминаем какие параметры не входят в пересечение
+    if not IsFound then begin
+      Push(DiffIndexes, i)
     end;
   end;
-  ShowParams(FigureCommonParams, FPanel);
+
+  SetLength(TempParams, Length(FCommonParams) - Length(DiffIndexes));
+  j := Low(TempParams);
+  for i := Low(FCommonParams) to High(FCommonParams) do begin
+    if IsInArray(i, DiffIndexes) then Continue;
+    TempParams[j] := FCommonParams[i];
+    j += 1;
+  end;
+  FCommonParams := TempParams;
 end;
-}
+
+procedure TSelectionTool.InitParams;
+var
+  i, j: Integer;
+  FirstFound: Boolean = False;
+  FigureParams: TParamArr;
+  AllEditors: TParamEditorsClassArr;
+  Editor: TParamEditor;
+begin
+  FCommonParams := Nil;
+  //ищем пересечения парметров
+  for i := Low(Figures) to High(Figures) do begin
+    if Figures[i].IsSelected then begin
+      FigureParams := Figures[i].GetParams;
+      if not FirstFound then begin
+        FirstFound := True;
+        SetLength(FCommonParams, Length(FigureParams));
+        for j := Low(FCommonParams) to High(FCommonParams) do begin
+          SetLength(FCommonParams[j], 1);
+          FCommonParams[j, 0] := FigureParams[j];
+        end;
+      end
+      else
+        CrossParams(FigureParams);
+    end;
+  end;
+  AllEditors := GetAllEditors;
+  for i := Low(FCommonParams) to High(FCommonParams) do begin
+    for j := Low(AllEditors) to High(AllEditors) do begin
+      Editor := AllEditors[j].Create;
+      if FCommonParams[i,0].ClassType = Editor.GetParamType then begin
+        Editor.AttachParams(FCommonParams[i], FGControl);
+        AddParamEditor(Editor);
+      end
+      else
+        FreeAndNil(Editor);
+    end;
+  end;
+end;
+
 procedure TSelectionTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState;
+  AGControl: TGraphicControl);
 begin
   FShift := AShift;
   FFigure := TSelection.Create(DispToWorldCoord(AMousePos));
   FStartingPoint := DispToWorldCoord(AMousePos);
+  FGControl := AGControl;
 end;
 
 procedure TSelectionTool.MouseMove(AMousePos: TPoint);
@@ -303,25 +370,24 @@ var
   SelectionWidth, SelectionHeight: Double;
   SelectionMode: TSelectionMode;
 begin
-  {TODO: вынести в методы фигур}
   SelectionBounds := FFigure.GetBounds;
+  {TODO: вынести в методы фигур}
   SelectionWidth := SelectionBounds.Right - SelectionBounds.Left;
   SelectionHeight := SelectionBounds.Bottom - SelectionBounds.Top;
 
+  if not (ssCtrl in FShift) then begin
+    DeselectAllFigures;
+    SelectionMode := smSelect;
+  end
+  else
+    SelectionMode := smAdd;
+
   if (SelectionWidth > Delta / Scale) or
     (SelectionHeight > Delta / Scale)
-  then begin
-    DeselectAllFigures;
-    SelectFigures(SelectionBounds);
-  end
-  else begin
-    if (ssCtrl in FShift) then SelectionMode := smAdd
-    else begin
-      DeselectAllFigures;
-      SelectionMode := smSelect;
-    end;
+  then
+    SelectFigures(SelectionBounds)
+  else
     SelectFigure(FStartingPoint, SelectionMode);
-  end;
   FreeAndNil(FFigure);
   Init(FPanel);
 end;
@@ -362,12 +428,13 @@ end;
 procedure TRoundRectangleTool.InitParams;
 begin
   Inherited;
-  AddParamEditor(TIntegerParamEditor.Create('Скругление по X:', 30));
-  AddParamEditor(TIntegerParamEditor.Create('Скругление по Y:', 30));
+  AddParamEditor(TXCoeffParamEditor.Create(30));
+  AddParamEditor(TYCoeffParamEditor.Create(30));
 end;
 
 procedure TRoundRectangleTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState;
+  AGControl: TGraphicControl);
 begin
   FFigure := TRoundRectangle.Create(DispToWorldCoord(AMousePos), APenColor, ABrushColor);
   SetParams(FFigure.GetParams);
@@ -393,7 +460,8 @@ begin
 end;
 
 procedure TRegularPolygonTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState;
+  AGControl: TGraphicControl);
 begin
   FFigure := TRegularPolygon.Create(DispToWorldCoord(AMousePos), APenColor, ABrushColor);
   SetParams(FFigure.GetParams);
@@ -434,7 +502,7 @@ begin
 end;
 
 procedure TMagnifierTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl);
 begin
   FMouseButton := AButton;
   FFigure := TSelection.Create(DispToWorldCoord(AMousePos));
@@ -485,7 +553,7 @@ begin
 end;
 
 procedure THandTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl);
 begin
   FStartingPoint := DispToWorldCoord(AMousePos);
 end;
@@ -544,7 +612,8 @@ begin
 end;
 
 procedure TPolylineTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState;
+  AGControl: TGraphicControl);
 begin
   FFigure := TPolyline.Create(DispToWorldCoord(AMousePos), APenColor);
   SetParams(FFigure.GetParams);
@@ -563,7 +632,8 @@ begin
 end;
 
 procedure TRectangleTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState;
+  AGControl: TGraphicControl);
 begin
   FFigure := TRectangle.Create(DispToWorldCoord(AMousePos), APenColor, ABrushColor);
   SetParams(FFigure.GetParams);
@@ -577,7 +647,8 @@ begin
 end;
 
 procedure TEllipseTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState;
+  AGControl: TGraphicControl);
 begin
   FFigure := TEllipse.Create(DispToWorldCoord(AMousePos), APenColor, ABrushColor);
   SetParams(FFigure.GetParams);
@@ -591,7 +662,8 @@ begin
 end;
 
 procedure TLineTool.MouseDown(AMousePos: TPoint; APenColor,
-  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState);
+  ABrushColor: TColor; AButton: TMouseButton; AShift: TShiftState;
+  AGControl: TGraphicControl);
 begin
   FFigure := TLine.Create(DispToWorldCoord(AMousePos), APenColor);
   SetParams(FFigure.GetParams);

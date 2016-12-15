@@ -16,10 +16,13 @@ type
   private
     FLabel: TLabel;
     FComponent: TControl;
+    FParams: TParamArr;
+    FGControl: TGraphicControl;
   public
+    procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); virtual;
     procedure SetParam(AParam: TParam); virtual; abstract;
     function GetParamType: TParamClass; virtual; abstract;
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
   end;
 
@@ -27,9 +30,11 @@ type
 
   TLineWidthParamEditor = class(TParamEditor)
   public
+    procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); override;
     procedure SetParam(AParam: TParam); override;
     function GetParamType: TParamClass; override;
-    constructor Create;
+    procedure OnLineWidthChange(Sender: TObject);
+    constructor Create; override;
   end;
 
   { TLineStyleParamEditor }
@@ -39,9 +44,11 @@ type
     procedure OnDrawLineStyleItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
   public
+    procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); override;
     procedure SetParam(AParam: TParam); override;
     function GetParamType: TParamClass; override;
-    constructor Create;
+    procedure OnLineStyleChange(Sender: TObject);
+    constructor Create; override;
   end;
 
   { TBrushStyleParamEditor }
@@ -51,30 +58,55 @@ type
     procedure OnDrawBrushStyleItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
   public
+    procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); override;
     procedure SetParam(AParam: TParam); override;
     function GetParamType: TParamClass; override;
-    constructor Create;
+    procedure OnBrushStyleChange(Sender: TObject);
+    constructor Create; override;
   end;
 
   { TCornersParamEdtitor }
 
   TCornersParamEdtitor = class(TParamEditor)
   public
+    procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); override;
     procedure SetParam(AParam: TParam); override;
     function GetParamType: TParamClass; override;
-    constructor Create;
+    procedure OnCornersNumberChange(Sender: TObject);
+    constructor Create; override;
   end;
 
   { TIntegerParamEditor }
 
   TIntegerParamEditor = class(TParamEditor)
   public
+    procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); override;
     procedure SetParam(AParam: TParam); override;
     function GetParamType: TParamClass; override;
+    procedure OnIntegerChange(Sender: TObject);
     constructor Create(ACaption: String; AValue: Integer = 1);
   end;
 
-  procedure ShowParamEditors(AParams: array of TParamEditor; APanel: TPanel);
+  { TXCoeffParamEditor }
+
+  TXCoeffParamEditor = class(TIntegerParamEditor)
+  public
+    function GetParamType: TParamClass; override;
+    constructor Create(AValue: Integer = 1);
+  end;
+
+  { TYCoeffParamEditor }
+
+  TYCoeffParamEditor = class(TIntegerParamEditor)
+    function GetParamType: TParamClass; override;
+    constructor Create(AValue: Integer = 1);
+  end;
+
+  TParamEditorClass = class of TParamEditor;
+  TParamEditorsClassArr = array of TParamEditorClass;
+
+  procedure ShowParamEditors(AEditors: array of TParamEditor; APanel: TPanel);
+  function GetAllEditors: TParamEditorsClassArr;
 
 implementation
 
@@ -83,11 +115,17 @@ uses
 
 { Misc }
 
-procedure ShowParamEditors(AParams: array of TParamEditor; APanel: TPanel);
+procedure Push(var AArr: TParamEditorsClassArr; AElement: TParamEditorClass);
+begin
+  SetLength(AArr, Length(AArr) + 1);
+  AArr[High(AArr)] := AElement;
+end;
+
+procedure ShowParamEditors(AEditors: array of TParamEditor; APanel: TPanel);
 var i: Integer;
 begin
-  for i := Low(AParams) to High(AParams) do begin
-    with AParams[i] do begin
+  for i := Low(AEditors) to High(AEditors) do begin
+    with AEditors[i] do begin
       FLabel.Top := i * 50;
       FLabel.Left := 2;
       FLabel.Parent := APanel;
@@ -98,7 +136,47 @@ begin
   end;
 end;
 
+function GetAllEditors: TParamEditorsClassArr;
+begin
+  Push(Result, TLineWidthParamEditor);
+  Push(Result, TLineStyleParamEditor);
+  Push(Result, TBrushStyleParamEditor);
+  Push(Result, TCornersParamEdtitor);
+  Push(Result, TIntegerParamEditor);
+end;
+
+{ TYCoeffParamEditor }
+
+function TYCoeffParamEditor.GetParamType: TParamClass;
+begin
+  Result := TParamYCoeff;
+end;
+
+constructor TYCoeffParamEditor.Create(AValue: Integer);
+begin
+  Inherited Create('Скругление по Y: ',  AValue);
+end;
+
+{ TXCoeffParamEditor }
+
+function TXCoeffParamEditor.GetParamType: TParamClass;
+begin
+  Result := TParamXCoeff;
+end;
+
+constructor TXCoeffParamEditor.Create(AValue: Integer);
+begin
+  Inherited Create('Скругление по X: ', AValue);
+end;
+
 { TIntegerParamEditor }
+
+procedure TIntegerParamEditor.AttachParams(AParams: TParamArr;
+  AGCotnrol: TGraphicControl);
+begin
+  Inherited;
+  (FComponent as TSpinEdit).OnChange := @OnIntegerChange;
+end;
 
 procedure TIntegerParamEditor.SetParam(AParam: TParam);
 begin
@@ -108,6 +186,14 @@ end;
 function TIntegerParamEditor.GetParamType: TParamClass;
 begin
   Result := TParamInteger;
+end;
+
+procedure TIntegerParamEditor.OnIntegerChange(Sender: TObject);
+var i: Integer;
+begin
+  for i := Low(FParams) to High(FParams) do
+    FParams[i].SetValue((Sender as TSpinEdit).Value);
+  FGControl.Invalidate;
 end;
 
 constructor TIntegerParamEditor.Create(ACaption: String; AValue: Integer = 1);
@@ -128,6 +214,13 @@ end;
 
 { TCornersParamEdtitor }
 
+procedure TCornersParamEdtitor.AttachParams(AParams: TParamArr;
+  AGCotnrol: TGraphicControl);
+begin
+  Inherited;
+  (FComponent as TSpinEdit).OnChange := @OnCornersNumberChange;
+end;
+
 procedure TCornersParamEdtitor.SetParam(AParam: TParam);
 begin
   AParam.SetValue((FComponent as TSpinEdit).Value);
@@ -136,6 +229,14 @@ end;
 function TCornersParamEdtitor.GetParamType: TParamClass;
 begin
   Result := TParamCorners;
+end;
+
+procedure TCornersParamEdtitor.OnCornersNumberChange(Sender: TObject);
+var i: Integer;
+begin
+  for i := Low(FParams) to High(FParams) do
+    FParams[i].SetValue((Sender as TSpinEdit).Value);
+  FGControl.Invalidate;
 end;
 
 constructor TCornersParamEdtitor.Create;
@@ -183,6 +284,13 @@ begin
   end;
 end;
 
+procedure TBrushStyleParamEditor.AttachParams(AParams: TParamArr;
+  AGCotnrol: TGraphicControl);
+begin
+  Inherited;
+  (FComponent as TComboBox).OnChange := @OnBrushStyleChange;
+end;
+
 procedure TBrushStyleParamEditor.SetParam(AParam: TParam);
 begin
   AParam.SetValue(TFPBrushStyle((FComponent as TComboBox).ItemIndex));
@@ -191,6 +299,14 @@ end;
 function TBrushStyleParamEditor.GetParamType: TParamClass;
 begin
   Result := TParamBrushStyle;
+end;
+
+procedure TBrushStyleParamEditor.OnBrushStyleChange(Sender: TObject);
+var i: Integer;
+begin
+  for i := Low(FParams) to High(FParams) do
+    FParams[i].SetValue(TFPBrushStyle((Sender as TComboBox).ItemIndex));
+  FGControl.Invalidate;
 end;
 
 constructor TBrushStyleParamEditor.Create;
@@ -237,6 +353,13 @@ begin
   end;
 end;
 
+procedure TLineStyleParamEditor.AttachParams(AParams: TParamArr;
+  AGCotnrol: TGraphicControl);
+begin
+  Inherited;
+  (FComponent as TComboBox).OnChange := @OnLineStyleChange;
+end;
+
 procedure TLineStyleParamEditor.SetParam(AParam: TParam);
 begin
   AParam.SetValue(TFPPenStyle((FComponent as TComboBox).ItemIndex));
@@ -245,6 +368,14 @@ end;
 function TLineStyleParamEditor.GetParamType: TParamClass;
 begin
   Result := TParamLineStyle;
+end;
+
+procedure TLineStyleParamEditor.OnLineStyleChange(Sender: TObject);
+var i: Integer;
+begin
+  for i := Low(FParams) to High(FParams) do
+    FParams[i].SetValue(TFPPenStyle((Sender as TComboBox).ItemIndex));
+  FGControl.Invalidate;
 end;
 
 constructor TLineStyleParamEditor.Create;
@@ -267,6 +398,13 @@ end;
 
 { TParamEditor }
 
+procedure TParamEditor.AttachParams(AParams: TParamArr;
+  AGCotnrol: TGraphicControl);
+begin
+  FParams := AParams;
+  FGControl := AGCotnrol;
+end;
+
 constructor TParamEditor.Create;
 begin
   Inherited;
@@ -283,6 +421,13 @@ end;
 
 { TLineWidthParamEditor }
 
+procedure TLineWidthParamEditor.AttachParams(AParams: TParamArr;
+  AGCotnrol: TGraphicControl);
+begin
+  Inherited;
+  (FComponent as TSpinEdit).OnChange := @OnLineWidthChange;
+end;
+
 procedure TLineWidthParamEditor.SetParam(AParam: TParam);
 begin
   AParam.SetValue((FComponent as TSpinEdit).Value);
@@ -291,6 +436,14 @@ end;
 function TLineWidthParamEditor.GetParamType: TParamClass;
 begin
   Result := TParamLineWidth;
+end;
+
+procedure TLineWidthParamEditor.OnLineWidthChange(Sender: TObject);
+var i: Integer;
+begin
+  for i := Low(FParams) to High(FParams) do
+    FParams[i].SetValue((Sender as TSpinEdit).Value);
+  FGControl.Invalidate;
 end;
 
 constructor TLineWidthParamEditor.Create;

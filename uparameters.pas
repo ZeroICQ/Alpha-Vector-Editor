@@ -75,6 +75,16 @@ type
     procedure SetValue(AValue: Integer); override;
   end;
 
+  { TParamXCoeff }
+
+  TParamXCoeff = class(TParamInteger)
+  end;
+
+  { TParamYCoeff }
+
+  TParamYCoeff = class(TParamInteger)
+  end;
+
   TParamArr = array of TParam;
 
 implementation

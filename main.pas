@@ -300,7 +300,7 @@ procedure TVectorEditor.PaintBoxMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   isDrawing := True;
-  CurrentTool.MouseDown(Point(X, Y), PenColor, BrushColor, Button, Shift);
+  CurrentTool.MouseDown(Point(X, Y), PenColor, BrushColor, Button, Shift, PaintBox);
 end;
 
 procedure TVectorEditor.PaintBoxMouseMove(Sender: TObject; Shift: TShiftState;
@@ -353,10 +353,10 @@ var i:integer;
 begin
   RedefineImageBounds;
   for i := 0 to High(Figures) do begin
-    Figures[i].Draw(PaintBox);
+    Figures[i].Draw(PaintBox.Canvas);
   end;
   if isDrawing and (CurrentTool.GetFigure <> nil) then begin
-    CurrentTool.GetFigure.Draw(PaintBox);
+    CurrentTool.GetFigure.Draw(PaintBox.Canvas);
   end;
   UpdateScale;
   SetScrollBarsPostions;
