@@ -362,8 +362,8 @@ end;
 procedure TRoundRectangleTool.InitParams;
 begin
   Inherited;
-  AddParamEditor(TIntegerParamEditor.Create('Скругление по X:'));
-  AddParamEditor(TIntegerParamEditor.Create('Скругление по Y:'));
+  AddParamEditor(TIntegerParamEditor.Create('Скругление по X:', 30));
+  AddParamEditor(TIntegerParamEditor.Create('Скругление по Y:', 30));
 end;
 
 procedure TRoundRectangleTool.MouseDown(AMousePos: TPoint; APenColor,

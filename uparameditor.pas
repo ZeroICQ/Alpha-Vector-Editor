@@ -69,8 +69,9 @@ type
 
   TIntegerParamEditor = class(TParamEditor)
   public
+    procedure SetParam(AParam: TParam); override;
     function GetParamType: TParamClass; override;
-    constructor Create(ACaption: String);
+    constructor Create(ACaption: String; AValue: Integer = 1);
   end;
 
   procedure ShowParamEditors(AParams: array of TParamEditor; APanel: TPanel);
@@ -99,12 +100,17 @@ end;
 
 { TIntegerParamEditor }
 
+procedure TIntegerParamEditor.SetParam(AParam: TParam);
+begin
+  AParam.SetValue((FComponent as TSpinEdit).Value);
+end;
+
 function TIntegerParamEditor.GetParamType: TParamClass;
 begin
   Result := TParamInteger;
 end;
 
-constructor TIntegerParamEditor.Create(ACaption: String);
+constructor TIntegerParamEditor.Create(ACaption: String; AValue: Integer = 1);
 begin
   Inherited Create;
   FLabel.Caption := ACaption;
@@ -112,7 +118,7 @@ begin
   with FComponent as TSpinEdit do begin
     MaxValue := 1000;
     MinValue := 1;
-    Value := 30;
+    Value := AValue;
     Font.Size := 11;
     Alignment := taRightJustify;
     Width := 130;
@@ -295,7 +301,7 @@ begin
   with FComponent as TSpinEdit do begin
     MaxValue := 500;
     MinValue := 1;
-    Value := 1;
+    Value := 3;
     Font.Size := 11;
     Alignment := taRightJustify;
     Width := 64;
