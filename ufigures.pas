@@ -219,7 +219,6 @@ var
 begin
   VectorX := DoublePoint(10, 0);
   VectorCircle := AOnCircle - ACenter;
-  {TODO: привести к читаемому виду}
   VectorXLength := sqrt(VectorX.X**2 + VectorX.Y**2);
   VectorCircleLength := sqrt(VectorCircle.X**2 + VectorCircle.Y**2);
   CosAngel := (VectorX * VectorCircle)/(VectorXLength * VectorCircleLength);

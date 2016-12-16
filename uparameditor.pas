@@ -251,7 +251,6 @@ begin
     Font.Size := 11;
     Alignment := taRightJustify;
     Width := 130;
-    //OnChange := @OnFactorChange;
   end;
 end;
 
@@ -294,7 +293,6 @@ begin
     Font.Size := 11;
     Alignment := taRightJustify;
     Width := 64;
-    //OnChange := @OnCornersNumberChange;
   end;
 end;
 
@@ -368,7 +366,6 @@ begin
     ItemHeight := 20;
     Style := csOwnerDrawFixed;
     OnDrawItem := @OnDrawBrushStyleItem;
-    //OnChange := @OnBrushStyleChange;
   end;
 end;
 
@@ -435,7 +432,6 @@ begin
     ItemIndex := 0;
     ItemHeight := 20;
     OnDrawItem := @OnDrawLineStyleItem;
-    //OnChange := @OnLineStyleChange;
   end;
 end;
 
@@ -515,7 +511,6 @@ begin
     Font.Size := 11;
     Alignment := taRightJustify;
     Width := 64;
-    //OnChange := @OnLineWidthChange;
   end;
 end;
 
