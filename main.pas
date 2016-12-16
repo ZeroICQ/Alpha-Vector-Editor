@@ -7,17 +7,27 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Math, Dialogs, Menus,
   ExtCtrls, StdCtrls, aboutprogram, LCLType, Spin, Buttons, ActnList, Grids,
-  UFigures, UTools, UTransform, Types;
+  UFigures, UTools, UTransform, Types, UAppState, USave;
 
 type
 
   { TVectorEditor }
   TVectorEditor = class(TForm)
+    FileDivider2MenuItem: TMenuItem;
+    OpenFileDialog: TOpenDialog;
+    SaveFileDialog: TSaveDialog;
+    SaveFileAsMenuItem: TMenuItem;
+    SaveFileMenuItem: TMenuItem;
+    SaveFileAsAction: TAction;
+    OpenFileAction: TAction;
+    SaveFileAction: TAction;
+    ActionList: TActionList;
     ColorDialog: TColorDialog;
     ImageBoundsLabel: TLabel;
     ImageBoundsX: TLabel;
     ImageBoundsY: TLabel;
     ColorPanel: TPanel;
+    OpenFileMenuItem: TMenuItem;
     ToolButtonPanel: TPanel;
     ParamPanel: TPanel;
     ScrollbarMinLabel: TLabel;
@@ -53,6 +63,8 @@ type
     VerticalScrollBar: TScrollBar;
     ToolPanel: TPanel;
     procedure AboutMenuItemClick(Sender: TObject);
+    procedure OpenFileActionExecute(Sender: TObject);
+    procedure SaveFileActionExecute(Sender: TObject);
     procedure ClearMenuItemClick(Sender: TObject);
     procedure ExitMenuItemClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -74,6 +86,7 @@ type
       aRect: TRect; aState: TGridDrawState);
     procedure PaletteGridMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure SaveFileAsActionExecute(Sender: TObject);
     procedure ScaleFloatSpinEditChange(Sender: TObject);
     procedure ShowEverythingMenuItemClick(Sender: TObject);
     procedure ToolClick(Sender: TObject);
@@ -280,6 +293,7 @@ procedure TVectorEditor.FormCreate(Sender: TObject);
 var
   BtnWidth, BtnHeight, ColsCount: Integer;
 begin
+  InitSaveLoad(Self);
   CurrentTool := Tools[0];
   CurrentTool.Init(ParamPanel);
   //Передаём дефолтный параметры представлению
@@ -439,6 +453,7 @@ begin
       (DispDimensions.Width - WorldToDispDimension(ImgWorldWidth)) / 2,
     WorldToDispDimension(ImageBounds.Top) -
       (DispDimensions.Height - WorldToDispDimension(ImgWorldHeight)) / 2);
+  SetAppStateModified;
   PaintBox.Invalidate;
 end;
 
@@ -447,6 +462,24 @@ begin
   aboutprogram.aboutProgramForm.Show;
 end;
 
+procedure TVectorEditor.OpenFileActionExecute(Sender: TObject);
+begin
+
+end;
+
+procedure TVectorEditor.SaveFileActionExecute(Sender: TObject);
+begin
+  //if GetFileState = fisSaved then
+  //Save;
+end;
+
+procedure TVectorEditor.SaveFileAsActionExecute(Sender: TObject);
+begin
+  SaveFileDialog.FileName := GetFilePath;
+  SaveFileDialog.InitialDir := GetCurrentDir;
+  if SaveFileDialog.Execute then
+    SaveFile(SaveFileDialog.FileName, Figures);
+end;
 procedure TVectorEditor.ClearMenuItemClick(Sender: TObject);
 begin
   ClearCanvas;

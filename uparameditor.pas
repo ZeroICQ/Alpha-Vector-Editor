@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, Controls, SysUtils, Graphics, UTransform, StdCtrls,
-  ExtCtrls, Spin, FPCanvas, UParameters;
+  ExtCtrls, Spin, FPCanvas, UParameters, UAppState;
 
 type
 
@@ -236,6 +236,7 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     FParams[i].SetValue((Sender as TSpinEdit).Value);
+  SetAppStateModified;
   FGControl.Invalidate;
 end;
 
@@ -278,6 +279,7 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     FParams[i].SetValue((Sender as TSpinEdit).Value);
+  SetAppStateModified;
   FGControl.Invalidate;
 end;
 
@@ -347,6 +349,7 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     FParams[i].SetValue(TFPBrushStyle((Sender as TComboBox).ItemIndex));
+  SetAppStateModified;
   FGControl.Invalidate;
 end;
 
@@ -415,6 +418,7 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     FParams[i].SetValue(TFPPenStyle((Sender as TComboBox).ItemIndex));
+  SetAppStateModified;
   FGControl.Invalidate;
 end;
 
@@ -496,6 +500,7 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     FParams[i].SetValue((Sender as TSpinEdit).Value);
+  SetAppStateModified;
   FGControl.Invalidate;
 end;
 

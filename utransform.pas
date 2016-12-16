@@ -33,6 +33,7 @@ type
     Width: Integer;
   end;
 
+  TDoublePointPtr = ^TDoublePoint;
   TArrayOfTpoint = array of TPoint;
 
 operator + (ADblPointA, ADblPointB: TDoublePoint): TDoublePoint;

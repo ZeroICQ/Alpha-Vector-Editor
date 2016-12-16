@@ -1,11 +1,11 @@
 unit UParameters;
 
-{$mode objfpc}{$H+}
+{$mode objfpc}{$H+}{$M+}
 
 interface
 
 uses
-  Classes, SysUtils, FPCanvas, Graphics;
+  Classes, SysUtils, FPCanvas, Graphics, UTransform, typinfo;
 
 type
 
@@ -35,6 +35,8 @@ type
     procedure SetValue(AValue: Integer); override;
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
+  published
+    function GetStrValue: String;
   end;
 
   { TParamLineStyle }
@@ -45,9 +47,11 @@ type
   public
     property Style: TFPPenStyle read FLineStyle write FLineStyle;
     procedure Apply(ACanvas: TCanvas); override;
-    procedure SetValue(ALineStyle: TFPPenStyle); override;
     function GetIntValue: Integer; override;
+    procedure SetValue(ALineStyle: TFPPenStyle); override;
     function Compare(AParam: TParam): Boolean; override;
+  published
+    function GetStrValue: String;
   end;
 
   { TParamBrushStyle }
@@ -61,6 +65,8 @@ type
     procedure SetValue(ABrushStyle: TFPBrushStyle); override;
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
+  published
+    function GetStrValue: String;
   end;
 
   { TParamCorners }
@@ -73,6 +79,8 @@ type
     procedure SetValue(AValue: Integer); override;
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
+  published
+    function GetStrValue: String;
   end;
 
   { TParamInteger }
@@ -85,23 +93,46 @@ type
     procedure SetValue(AValue: Integer); override;
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
+  published
+    function GetStrValue: String;
   end;
 
   { TParamXCoeff }
 
   TParamXCoeff = class(TParamInteger)
-
   end;
 
   { TParamYCoeff }
 
   TParamYCoeff = class(TParamInteger)
+  end;
 
+  { TParamVertexes }
+
+  TParamVertexes = class(TParam)
+  private
+    FVertexes: array of TDoublePoint;
+  public
+    procedure AddVertex(ADoublePoint: TDoublePoint);
+    function GetVertex(AIndex: Integer): TDoublePointPtr;
   end;
 
   TParamArr = array of TParam;
 
 implementation
+
+{ TParamVertexes }
+
+procedure TParamVertexes.AddVertex(ADoublePoint: TDoublePoint);
+begin
+  SetLength(FVertexes, Length(FVertexes) + 1);
+  FVertexes[High(FVertexes)] := ADoublePoint;
+end;
+
+function TParamVertexes.GetVertex(AIndex: Integer): TDoublePointPtr;
+begin
+  Result := @FVertexes[AIndex];
+end;
 
 { TParamInteger }
 
@@ -120,6 +151,11 @@ begin
   Result := Value = (AParam as TParamInteger).Value;
 end;
 
+function TParamInteger.GetStrValue: String;
+begin
+  result := IntToStr(Value);
+end;
+
 { TParamCorners }
 
 procedure TParamCorners.SetValue(AValue: Integer);
@@ -135,6 +171,11 @@ end;
 function TParamCorners.Compare(AParam: TParam): Boolean;
 begin
   Result := Corners = (AParam as TParamCorners).Corners;
+end;
+
+function TParamCorners.GetStrValue: String;
+begin
+  Result := IntToStr(Corners);
 end;
 
 { TParam }
@@ -181,6 +222,11 @@ begin
   Result := Style = (AParam as TParamBrushStyle).Style;
 end;
 
+function TParamBrushStyle.GetStrValue: String;
+begin
+  Result := GetEnumName(TypeInfo(Style), ord(Style));
+end;
+
 { TParamLineStyle }
 
 procedure TParamLineStyle.Apply(ACanvas: TCanvas);
@@ -196,6 +242,11 @@ end;
 function TParamLineStyle.GetIntValue: Integer;
 begin
   Result := Ord(Style);
+end;
+
+function TParamLineStyle.GetStrValue: String;
+begin
+  Result := GetEnumName(TypeInfo(Style), ord(Style));
 end;
 
 function TParamLineStyle.Compare(AParam: TParam): Boolean;
@@ -218,6 +269,11 @@ end;
 function TParamLineWidth.GetIntValue: Integer;
 begin
   Result := Width;
+end;
+
+function TParamLineWidth.GetStrValue: String;
+begin
+  Result := IntToStr(Width);
 end;
 
 function TParamLineWidth.Compare(AParam: TParam): Boolean;
