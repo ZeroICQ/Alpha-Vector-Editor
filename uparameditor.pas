@@ -19,6 +19,8 @@ type
     FParams: TParamArr;
     FGControl: TGraphicControl;
   public
+    procedure HandleDiffVals;
+    procedure SetValue(AParam: TParam); virtual; abstract;
     procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); virtual;
     procedure SetParam(AParam: TParam); virtual; abstract;
     function GetParamType: TParamClass; virtual; abstract;
@@ -26,9 +28,16 @@ type
     destructor Destroy; override;
   end;
 
+  { TSpinEditEditor }
+
+  TSpinEditEditor = class(TParamEditor)
+  public
+    procedure SetValue(AParam: TParam); override;
+  end;
+
   { TLineWidthParamEditor }
 
-  TLineWidthParamEditor = class(TParamEditor)
+  TLineWidthParamEditor = class(TSpinEditEditor)
   public
     procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); override;
     procedure SetParam(AParam: TParam); override;
@@ -37,9 +46,16 @@ type
     constructor Create; override;
   end;
 
+  { TComboBoxEditor }
+
+  TComboBoxEditor = class(TParamEditor)
+  public
+    procedure SetValue(AParam: TParam); override;
+  end;
+
   { TLineStyleParamEditor }
 
-  TLineStyleParamEditor = class(TParamEditor)
+  TLineStyleParamEditor = class(TComboBoxEditor)
   private
     procedure OnDrawLineStyleItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
@@ -53,7 +69,7 @@ type
 
   { TBrushStyleParamEditor }
 
-  TBrushStyleParamEditor = class(TParamEditor)
+  TBrushStyleParamEditor = class(TComboBoxEditor)
   private
     procedure OnDrawBrushStyleItem(Control: TWinControl; Index: Integer;
       ARect: TRect; State: TOwnerDrawState);
@@ -67,7 +83,7 @@ type
 
   { TCornersParamEdtitor }
 
-  TCornersParamEdtitor = class(TParamEditor)
+  TCornersParamEdtitor = class(TSpinEditEditor)
   public
     procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); override;
     procedure SetParam(AParam: TParam); override;
@@ -78,13 +94,13 @@ type
 
   { TIntegerParamEditor }
 
-  TIntegerParamEditor = class(TParamEditor)
+  TIntegerParamEditor = class(TSpinEditEditor)
   public
     procedure AttachParams(AParams: TParamArr; AGCotnrol: TGraphicControl); override;
     procedure SetParam(AParam: TParam); override;
     function GetParamType: TParamClass; override;
     procedure OnIntegerChange(Sender: TObject);
-    constructor Create(ACaption: String; AValue: Integer = 1);
+    constructor Create(ACaption: String; AValue: Integer = 1); overload;
   end;
 
   { TXCoeffParamEditor }
@@ -92,14 +108,16 @@ type
   TXCoeffParamEditor = class(TIntegerParamEditor)
   public
     function GetParamType: TParamClass; override;
-    constructor Create(AValue: Integer = 1);
+    constructor Create(AValue: Integer = 1); overload;
+    constructor Create; override;
   end;
 
   { TYCoeffParamEditor }
 
   TYCoeffParamEditor = class(TIntegerParamEditor)
     function GetParamType: TParamClass; override;
-    constructor Create(AValue: Integer = 1);
+    constructor Create(AValue: Integer = 1); overload;
+    constructor Create; override;
   end;
 
   TParamEditorClass = class of TParamEditor;
@@ -142,7 +160,22 @@ begin
   Push(Result, TLineStyleParamEditor);
   Push(Result, TBrushStyleParamEditor);
   Push(Result, TCornersParamEdtitor);
-  Push(Result, TIntegerParamEditor);
+  Push(Result, TXCoeffParamEditor);
+  Push(Result, TYCoeffParamEditor);
+end;
+
+{ TSpinEditEditor }
+
+procedure TSpinEditEditor.SetValue(AParam: TParam);
+begin
+  (FComponent as TSpinEdit).Value := AParam.GetIntValue;
+end;
+
+{ TComboboxEditor }
+
+procedure TComboBoxEditor.SetValue(AParam: TParam);
+begin
+  (FComponent as TComboBox).ItemIndex := AParam.GetIntValue;
 end;
 
 { TYCoeffParamEditor }
@@ -157,6 +190,11 @@ begin
   Inherited Create('Скругление по Y: ',  AValue);
 end;
 
+constructor TYCoeffParamEditor.Create;
+begin
+  Inherited Create('Скругление по Y: ');
+end;
+
 { TXCoeffParamEditor }
 
 function TXCoeffParamEditor.GetParamType: TParamClass;
@@ -167,6 +205,11 @@ end;
 constructor TXCoeffParamEditor.Create(AValue: Integer);
 begin
   Inherited Create('Скругление по X: ', AValue);
+end;
+
+constructor TXCoeffParamEditor.Create;
+begin
+  Inherited Create('Скругление по X: ');
 end;
 
 { TIntegerParamEditor }
@@ -398,11 +441,25 @@ end;
 
 { TParamEditor }
 
+procedure TParamEditor.HandleDiffVals;
+var i: Integer;
+begin
+  SetValue(FParams[0]);
+  for i := Low(FParams) to High(FParams) - 1 do begin
+    if not FParams[i].Compare(FParams[i+1]) then begin
+      //!!!сделать значение пустым как??
+      FComponent.Caption := ' ';
+      Break;
+    end;
+  end;
+end;
+
 procedure TParamEditor.AttachParams(AParams: TParamArr;
   AGCotnrol: TGraphicControl);
 begin
   FParams := AParams;
   FGControl := AGCotnrol;
+  HandleDiffVals;
 end;
 
 constructor TParamEditor.Create;

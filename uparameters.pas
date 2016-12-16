@@ -16,9 +16,12 @@ type
   TParam = class
   public
     procedure Apply(ACanvas: TCanvas); virtual;
+    {TODO: стоит ли так делать?}
     procedure SetValue(AValue: Integer); virtual;
     procedure SetValue(ALineStyle: TFPPenStyle); virtual;
     procedure SetValue(ABrushStyle: TFPBrushStyle); virtual;
+    function GetIntValue: Integer; virtual; abstract;
+    function Compare(AParam: TParam): Boolean; virtual; abstract;
   end;
 
   { TParamLineWidth }
@@ -30,6 +33,8 @@ type
     property Width: Integer read FLineWidth write FLineWidth;
     procedure Apply(ACanvas: TCanvas); override;
     procedure SetValue(AValue: Integer); override;
+    function GetIntValue: Integer; override;
+    function Compare(AParam: TParam): Boolean; override;
   end;
 
   { TParamLineStyle }
@@ -41,6 +46,8 @@ type
     property Style: TFPPenStyle read FLineStyle write FLineStyle;
     procedure Apply(ACanvas: TCanvas); override;
     procedure SetValue(ALineStyle: TFPPenStyle); override;
+    function GetIntValue: Integer; override;
+    function Compare(AParam: TParam): Boolean; override;
   end;
 
   { TParamBrushStyle }
@@ -52,6 +59,8 @@ type
     property Style: TFPBrushStyle read FBrushStyle write FBrushStyle;
     procedure Apply(ACanvas: TCanvas); override;
     procedure SetValue(ABrushStyle: TFPBrushStyle); override;
+    function GetIntValue: Integer; override;
+    function Compare(AParam: TParam): Boolean; override;
   end;
 
   { TParamCorners }
@@ -62,7 +71,8 @@ type
   public
     property Corners: Integer read FCorners write FCorners;
     procedure SetValue(AValue: Integer); override;
-
+    function GetIntValue: Integer; override;
+    function Compare(AParam: TParam): Boolean; override;
   end;
 
   { TParamInteger }
@@ -73,16 +83,20 @@ type
   public
     property Value: Integer read FValue write FValue;
     procedure SetValue(AValue: Integer); override;
+    function GetIntValue: Integer; override;
+    function Compare(AParam: TParam): Boolean; override;
   end;
 
   { TParamXCoeff }
 
   TParamXCoeff = class(TParamInteger)
+
   end;
 
   { TParamYCoeff }
 
   TParamYCoeff = class(TParamInteger)
+
   end;
 
   TParamArr = array of TParam;
@@ -96,11 +110,31 @@ begin
   Value := AValue;
 end;
 
+function TParamInteger.GetIntValue: Integer;
+begin
+  Result := Value;
+end;
+
+function TParamInteger.Compare(AParam: TParam): Boolean;
+begin
+  Result := Value = (AParam as TParamInteger).Value;
+end;
+
 { TParamCorners }
 
 procedure TParamCorners.SetValue(AValue: Integer);
 begin
   Corners := AValue;
+end;
+
+function TParamCorners.GetIntValue: Integer;
+begin
+  Result := FCorners;
+end;
+
+function TParamCorners.Compare(AParam: TParam): Boolean;
+begin
+  Result := Corners = (AParam as TParamCorners).Corners;
 end;
 
 { TParam }
@@ -137,6 +171,16 @@ begin
   Style := ABrushStyle;
 end;
 
+function TParamBrushStyle.GetIntValue: Integer;
+begin
+  Result := Ord(Style);
+end;
+
+function TParamBrushStyle.Compare(AParam: TParam): Boolean;
+begin
+  Result := Style = (AParam as TParamBrushStyle).Style;
+end;
+
 { TParamLineStyle }
 
 procedure TParamLineStyle.Apply(ACanvas: TCanvas);
@@ -149,6 +193,16 @@ begin
   FLineStyle := ALineStyle;
 end;
 
+function TParamLineStyle.GetIntValue: Integer;
+begin
+  Result := Ord(Style);
+end;
+
+function TParamLineStyle.Compare(AParam: TParam): Boolean;
+begin
+  Result := Style = (AParam as TParamLineStyle).Style;
+end;
+
 { TParamLineWidth }
 
 procedure TParamLineWidth.Apply(ACanvas: TCanvas);
@@ -159,6 +213,16 @@ end;
 procedure TParamLineWidth.SetValue(AValue: Integer);
 begin
   Width := AValue;
+end;
+
+function TParamLineWidth.GetIntValue: Integer;
+begin
+  Result := Width;
+end;
+
+function TParamLineWidth.Compare(AParam: TParam): Boolean;
+begin
+  Result:= Width = (AParam as TParamLineWidth).Width ;
 end;
 
 end.

@@ -238,44 +238,6 @@ begin
   FIcon := 'img/selection.bmp';
 end;
 
-{procedure TSelectionTool.CrossParams(AParams: TParams);
-var i, j: Integer;
-  IsFound: Boolean;
-  IndexesToDelete: array of Integer;
-  TempParams: TParams;
-begin
-  ПЕРЕДЕЛАТЬ!
-  if Length(FigureCommonParams) = 0 then begin
-    FigureCommonParams := AParams;
-    Exit;
-  end;
-  //ищем что удалить
-  for i := Low(FigureCommonParams) to High(FigureCommonParams) do begin
-    for j := Low(AParams) to High(AParams) do begin
-      IsFound := FigureCommonParams[i].ClassType = AParams[j].ClassType;
-      if IsFound then begin
-        IsFound := True;
-       !!! if not (FigureCommonParams[i].GetValue = AParams[j].GetValue) then
-       !!!   FigureCommonParams[i].SetEmpty;
-       !!!   Break;
-      end;
-    end;
-    if not IsFound then begin
-      SetLength(IndexesToDelete, Length(IndexesToDelete) + 1);
-      IndexesToDelete[High(IndexesToDelete)] := i;
-    end;
-  end;
-  //удаляем
-  SetLength(TempParams, Length(FigureCommonParams) - Length(IndexesToDelete));
-  j := Low(TempParams);
-  for i := Low(FigureCommonParams) to High(FigureCommonParams) do begin
-    if IsInArray(i, IndexesToDelete) then Continue;
-    TempParams[j] := FigureCommonParams[i];
-    j += 1;
-  end;
-  FigureCommonParams := TempParams;
-end;
-}
 procedure TSelectionTool.CrossParams(var AParams: TParamArr);
 var
   i, j: Integer;
@@ -370,6 +332,7 @@ var
   SelectionWidth, SelectionHeight: Double;
   SelectionMode: TSelectionMode;
 begin
+  if FFigure = Nil then Exit;
   SelectionBounds := FFigure.GetBounds;
   {TODO: вынести в методы фигур}
   SelectionWidth := SelectionBounds.Right - SelectionBounds.Left;
