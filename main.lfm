@@ -1,11 +1,11 @@
 object VectorEditor: TVectorEditor
-  Left = 279
+  Left = 529
   Height = 655
-  Top = 284
+  Top = 79
   Width = 722
   Caption = 'VectorEditor'
-  ClientHeight = 0
-  ClientWidth = 0
+  ClientHeight = 635
+  ClientWidth = 722
   Color = clWhite
   KeyPreview = True
   Menu = MainMenu
@@ -19,9 +19,9 @@ object VectorEditor: TVectorEditor
     AnchorSideRight.Control = VerticalScrollBar
     AnchorSideBottom.Control = DebugPanel
     Left = 145
-    Height = 0
+    Height = 467
     Top = 84
-    Width = 0
+    Width = 557
     Align = alCustom
     Anchors = [akTop, akLeft, akRight, akBottom]
     ParentColor = False
@@ -35,12 +35,12 @@ object VectorEditor: TVectorEditor
   end
   object ToolPanel: TPanel
     Left = 0
-    Height = 0
+    Height = 635
     Top = 0
     Width = 145
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 0
+    ClientHeight = 635
     ClientWidth = 145
     Color = 16119285
     ParentColor = False
@@ -110,7 +110,7 @@ object VectorEditor: TVectorEditor
       AnchorSideBottom.Control = ToolPanel
       AnchorSideBottom.Side = asrBottom
       Left = 0
-      Height = 0
+      Height = 607
       Top = 28
       Width = 145
       Anchors = [akTop, akLeft, akRight, akBottom]
@@ -144,8 +144,8 @@ object VectorEditor: TVectorEditor
     AnchorSideBottom.Side = asrBottom
     Left = 145
     Height = 20
-    Top = -20
-    Width = 0
+    Top = 615
+    Width = 557
     Anchors = [akLeft, akRight, akBottom]
     Max = 0
     PageSize = 1
@@ -160,8 +160,8 @@ object VectorEditor: TVectorEditor
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = HorizontalScrollBar
-    Left = -20
-    Height = 0
+    Left = 702
+    Height = 615
     Top = 0
     Width = 20
     Anchors = [akTop, akRight, akBottom]
@@ -179,11 +179,11 @@ object VectorEditor: TVectorEditor
     AnchorSideBottom.Control = HorizontalScrollBar
     Left = 145
     Height = 64
-    Top = -84
-    Width = 0
+    Top = 551
+    Width = 557
     Anchors = [akLeft, akRight, akBottom]
     ClientHeight = 64
-    ClientWidth = 0
+    ClientWidth = 557
     ParentColor = False
     TabOrder = 3
     Visible = False
@@ -325,10 +325,10 @@ object VectorEditor: TVectorEditor
     Left = 145
     Height = 84
     Top = 0
-    Width = 0
+    Width = 557
     Anchors = [akTop, akLeft, akRight]
     ClientHeight = 84
-    ClientWidth = 0
+    ClientWidth = 557
     ParentColor = False
     TabOrder = 4
     object PaletteGrid: TDrawGrid
@@ -465,7 +465,10 @@ object VectorEditor: TVectorEditor
   end
   object SaveFileDialog: TSaveDialog
     DefaultExt = '.vgi'
-    Filter = 'Default|.vgi'
+    FileName = 'C:\programming\Pascal\Alpha-Vector-Editor\New Image.vgi'
+    Filter = 'Default|*.vgi'
+    InitialDir = 'C:\programming\Pascal\Alpha-Vector-Editor\'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     left = 192
     top = 168
   end
