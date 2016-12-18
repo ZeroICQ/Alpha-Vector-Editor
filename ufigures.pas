@@ -6,7 +6,7 @@ interface
 
 uses
   Controls, UTransform, windows, Classes, SysUtils, Graphics, FPCanvas, LCL,
-  math, UParamEditor, UParameters, UAppState;
+  math, UParamEditor, UParameters, UAppState, strutils;
 
 type
   { TFigure }
@@ -18,11 +18,8 @@ type
     FPenColor: TColor;
     FLineWidth: TParamLineWidth;
     FLineStyle: TParamLineStyle;
-  published
-    property FParamLineWidth: TParamLineWidth read FLineWidth write FLineWidth;
-    property FParamLineStyle: TParamLineStyle read FLineStyle write FLineStyle;
-    property FParamPenColor: TColor read FPenColor write FPenColor;
   public
+    function GetStrCoord: String; virtual; abstract;
     property IsSelected: Boolean read FIsSelected write FIsSelected;
     procedure DrawFigure(ACanvas: TCanvas); virtual; abstract;
     procedure AddParam(AParam: TParam);
@@ -33,6 +30,10 @@ type
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; virtual; abstract;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; virtual; abstract;
     constructor Create(APenColor: TColor);
+  published
+    property FParamLineWidth: TParamLineWidth read FLineWidth write FLineWidth;
+    property FParamLineStyle: TParamLineStyle read FLineStyle write FLineStyle;
+    property FParamPenColor: TColor read FPenColor write FPenColor;
   end;
 
   { TPolyline }
@@ -41,6 +42,7 @@ type
   private
     FVertexes: array of TDoublePoint;
   public
+    function GetStrCoord: String; override;
     procedure DrawFigure(ACanvas: TCanvas); override;
     procedure Move(ADisplacement: TDoublePoint); override;
     procedure AddPoint(ADoublePoint: TDoublePoint);
@@ -62,12 +64,13 @@ type
   TFilledFigure = class(TTwoPointFigure)
   private
     FBrushColor: TColor;
-  published
-    FParamBrushStyle: TParamBrushStyle;
-    property FParamBrushColor: TColor read FBrushColor write FBrushColor;
+    FBrushStyle: TParamBrushStyle;
   public
     procedure Draw(ACanvas: TCanvas); override;
     constructor Create(APenColor, ABrushColor: TColor);
+  published
+    property FParamBrushStyle: TParamBrushStyle read FBrushStyle write FBrushStyle;
+    property FParamBrushColor: TColor read FBrushColor write FBrushColor;
   end;
 
   { TInscribedFigure }
@@ -75,9 +78,8 @@ type
   TInscribedFigure = class(TFilledFigure)
   private
     FFigureBounds: TDoubleRect;
-  published
-
   public
+    function GetStrCoord: String; override;
     property FParamFigureBounds: TDoubleRect read FFigureBounds write FFigureBounds;
     procedure Move(ADisplacement: TDoublePoint); override;
     function GetBounds: TDoubleRect; override;
@@ -97,23 +99,27 @@ type
   { TRoundRectangle }
 
   TRoundRectangle = class(TInscribedFigure)
-  published
-    FParamXCoeff: TParamXCoeff;
-    FParamYCoef: TParamYCoeff;
+  private
+    FXCoeff: TParamXCoeff;
+    FYCoeff: TParamYCoeff;
   public
     procedure DrawFigure(ACanvas: TCanvas); override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
     constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor);
+  published
+    property FParamXCoeff: TParamXCoeff read FXCoeff write FXCoeff;
+    property FParamYCoeff: TParamYCoeff read FYCoeff write FYCoeff;
   end;
 
   { TLine }
 
   TLine = class(TTwoPointFigure)
   public
-    FParamStartPoint: TDoublePoint;
-    FParamEndPoint: TDoublePoint;
+    FStartPoint: TDoublePoint;
+    FEndPoint: TDoublePoint;
   public
+    function GetStrCoord: String; override;
     procedure DrawFigure(ACanvas: TCanvas); override;
     procedure Move(ADisplacement: TDoublePoint); override;
     constructor Create(ADoublePoint: TDoublePoint; APenColor: TColor);
@@ -143,12 +149,13 @@ type
   { TRegularPolygon }
 
   TRegularPolygon = class(TFilledFigure)
+  private
+    FCorners: TParamCorners;
+    FVertexes: array of TDoublePoint;
+    FCenter: TDoublePoint;
+    FCirclePoint: TDoublePoint;
   public
-    FParamVertexes: array of TDoublePoint;
-    FParamCenter: TDoublePoint;
-    FParamCirclePoint: TDoublePoint;
-    FParamCorners: TParamCorners;
-  public
+    function GetStrCoord: String; override;
     procedure UpdateFigure;
     procedure DrawFigure(ACanvas: TCanvas); override;
     procedure Move(ADisplacement: TDoublePoint); override;
@@ -157,6 +164,8 @@ type
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
     constructor Create(ACenterPoint: TDoublePoint; APenColor, ABrushColor: TColor);
+  published
+    property FParamCorners: TParamCorners read FCorners write FCorners ;
   end;
 
 var
@@ -165,6 +174,11 @@ var
 implementation
 
 { Misc }
+
+function FormatPoint(ADoublePoint: TDoublePoint): String;
+begin
+  Result := Format('%F:%F; ',[ADoublePoint.X, ADoublePoint.Y])
+end;
 
 function IntersectSegments(APointA, APointB, APointC, APointD: TDoublePoint): Boolean;
 var
@@ -267,13 +281,13 @@ begin
   Inherited Create(ADoublePoint, APenColor, ABrushColor);
   FParamXCoeff := TParamXCoeff.Create;
   AddParam(FParamXCoeff);
-  FParamYCoef := TParamYCoeff.Create;
-  AddParam(FParamYCoef);
+  FParamYCoeff := TParamYCoeff.Create;
+  AddParam(FParamYCoeff);
 end;
 
 procedure TRoundRectangle.DrawFigure(ACanvas: TCanvas);
 begin
-  ACanvas.RoundRect(WorldToDispCoord(FParamFigureBounds), FParamXCoeff.Value, FParamYCoef.Value);
+  ACanvas.RoundRect(WorldToDispCoord(FParamFigureBounds), FParamXCoeff.Value, FParamYCoeff.Value);
 end;
 
 function TRoundRectangle.IsIntersect(ADoubleRect: TDoubleRect): Boolean;
@@ -281,7 +295,7 @@ var
   RoundRect: HRGN;
 begin
   with WorldToDispCoord(GetBounds) do begin
-    RoundRect := CreateRoundRectRgn(Left, Top, Right, Bottom, FParamXCoeff.Value, FParamYCoef.Value);
+    RoundRect := CreateRoundRectRgn(Left, Top, Right, Bottom, FParamXCoeff.Value, FParamYCoeff.Value);
   end;
   Result := RectInRegion(RoundRect, WorldToDispCoord(ADoubleRect));
   DeleteObject(RoundRect);
@@ -293,7 +307,7 @@ var
   RoundRect: HRGN;
 begin
   with WorldToDispCoord(GetBounds) do begin
-    RoundRect := CreateRoundRectRgn(Left, Top, Right, Bottom, FParamXCoeff.Value, FParamYCoef.Value);
+    RoundRect := CreateRoundRectRgn(Left, Top, Right, Bottom, FParamXCoeff.Value, FParamYCoeff.Value);
   end;
   Point := WorldToDispCoord(ADoublePoint);
   Result := PtInRegion(RoundRect, Point.X, Point.Y);
@@ -302,6 +316,11 @@ end;
 
 
 { TInscribedFigure }
+
+function TInscribedFigure.GetStrCoord: String;
+begin
+  Result := Concat(FormatPoint(GetBounds.TopLeft), FormatPoint(GetBounds.BottomRight));
+end;
 
 procedure TInscribedFigure.Move(ADisplacement: TDoublePoint);
 begin
@@ -337,8 +356,8 @@ constructor TRegularPolygon.Create(ACenterPoint: TDoublePoint; APenColor,
   ABrushColor: TColor);
 begin
   Inherited Create(APenColor, ABrushColor);
-  FParamCenter := ACenterPoint;
-  FParamCirclePoint := ACenterPoint + 1;
+  FCenter := ACenterPoint;
+  FCirclePoint := ACenterPoint + 1;
 
   FParamCorners := TParamCorners.Create;
   AddParam(FParamCorners);
@@ -347,7 +366,12 @@ end;
 procedure TRegularPolygon.DrawFigure(ACanvas: TCanvas);
 begin
   UpdateFigure;
-  ACanvas.Polygon(WorldVertexesToDispCoord(FParamVertexes));
+  ACanvas.Polygon(WorldVertexesToDispCoord(FVertexes));
+end;
+
+function TRegularPolygon.GetStrCoord: String;
+begin
+  Result := Concat(FormatPoint(FCenter), FormatPoint(FCirclePoint));
 end;
 
 procedure TRegularPolygon.UpdateFigure;
@@ -356,31 +380,31 @@ var
   Radius: Double;
   TurnAngle: Double;
 begin
-  Radius := sqrt((FParamCirclePoint.X - FParamCenter.X)**2 + (FParamCirclePoint.Y - FParamCenter.Y)**2);
+  Radius := sqrt((FCirclePoint.X - FCenter.X)**2 + (FCirclePoint.Y - FCenter.Y)**2);
   { TODO : Улучшить алгоритм }
-  SetLength(FParamVertexes, FParamCorners.Corners);
-  TurnAngle := GetTurnAngle(FParamCenter, FParamCirclePoint);
+  SetLength(FVertexes, FParamCorners.Corners);
+  TurnAngle := GetTurnAngle(FCenter, FCirclePoint);
   for i := 0 to FParamCorners.Corners - 1 do begin
-    FParamVertexes[i].x := FParamCenter.X + (Radius*sin((i * 2 * pi / FParamCorners.Corners) - TurnAngle));
-    FParamVertexes[i].y := FParamCenter.Y + (Radius*cos((i * 2 * pi / FParamCorners.Corners) - TurnAngle));
+    FVertexes[i].x := FCenter.X + (Radius*sin((i * 2 * pi / FParamCorners.Corners) - TurnAngle));
+    FVertexes[i].y := FCenter.Y + (Radius*cos((i * 2 * pi / FParamCorners.Corners) - TurnAngle));
   end;
 end;
 
 procedure TRegularPolygon.Move(ADisplacement: TDoublePoint);
 begin
-  FParamCenter += ADisplacement;
-  FParamCirclePoint += ADisplacement;
+  FCenter += ADisplacement;
+  FCirclePoint += ADisplacement;
 end;
 
 procedure TRegularPolygon.SetSecondPoint(ADoublePoint: TDoublePoint);
 begin
-  FParamCirclePoint := ADoublePoint;
+  FCirclePoint := ADoublePoint;
 end;
 
 function TRegularPolygon.GetBounds: TDoubleRect;
 begin
   UpdateFigure;
-  Result := GetVertexesBound(FParamVertexes);
+  Result := GetVertexesBound(FVertexes);
 end;
 
 function TRegularPolygon.IsIntersect(ADoubleRect: TDoubleRect): Boolean;
@@ -389,7 +413,7 @@ var
   Points: array of TPoint;
 begin
   SetLength(Points, FParamCorners.Corners);
-  Points := WorldVertexesToDispCoord(FParamVertexes);
+  Points := WorldVertexesToDispCoord(FVertexes);
   Polygon := CreatePolygonRgn(Points[0], Length(Points), WINDING);
   Result := RectInRegion(Polygon, WorldToDispCoord(ADoubleRect));
   DeleteObject(Polygon);
@@ -402,7 +426,7 @@ var
   Point: TPoint;
 begin
   SetLength(Points, FParamCorners.Corners);
-  Points := WorldVertexesToDispCoord(FParamVertexes);
+  Points := WorldVertexesToDispCoord(FVertexes);
   Polygon := CreatePolygonRgn(Points[0], Length(Points), WINDING);
   Point := WorldToDispCoord(ADoublePoint);
   Result := PtInRegion(Polygon, Point.x, Point.y);
@@ -484,6 +508,17 @@ procedure TPolyline.AddPoint(ADoublePoint: TDoublePoint);
 begin
   SetLength(FVertexes, Length(FVertexes) + 1);
   FVertexes[High(FVertexes)] := ADoublePoint;
+end;
+
+function TPolyline.GetStrCoord: String;
+var
+  i: Integer;
+  CoordStr: String = '';
+begin
+  for i := Low(FVertexes) to High(FVertexes) do
+    CoordStr += FormatPoint(FVertexes[i]);
+
+  Result := CoordStr;
 end;
 
 procedure TPolyline.DrawFigure(ACanvas: TCanvas);
@@ -592,49 +627,56 @@ end;
 constructor TLine.Create(ADoublePoint: TDoublePoint; APenColor: TColor);
 begin
   Inherited Create(APenColor);
-  FParamStartPoint := ADoublePoint;
-  FParamEndPoint := ADoublePoint;
+  FStartPoint := ADoublePoint;
+  FEndPoint := ADoublePoint;
 end;
 
 procedure TLine.SetSecondPoint(ADoublePoint: TDoublePoint);
 begin
-  FParamEndPoint := ADoublePoint;
+  FEndPoint := ADoublePoint;
 end;
 
 function TLine.GetBounds: TDoubleRect;
 begin
   with Result do begin
-    Top := Min(FParamStartPoint.Y, FParamEndPoint.Y);
-    Left := Min(FParamStartPoint.X, FParamEndPoint.X);
-    Bottom := Max(FParamStartPoint.Y, FParamEndPoint.Y);
-    Right := Max(FParamStartPoint.X, FParamEndPoint.X);
+    Top := Min(FStartPoint.Y, FEndPoint.Y);
+    Left := Min(FStartPoint.X, FEndPoint.X);
+    Bottom := Max(FStartPoint.Y, FEndPoint.Y);
+    Right := Max(FStartPoint.X, FEndPoint.X);
   end;
+end;
+
+function TLine.GetStrCoord: String;
+var
+  CoordStr: String = '';
+begin
+  Result := Concat(FormatPoint(FStartPoint), FormatPoint(FEndPoint));
 end;
 
 procedure TLine.DrawFigure(ACanvas: TCanvas);
 begin
-  ACanvas.Line(WorldToDispCoord(FParamStartPoint), WorldToDispCoord(FParamEndPoint));
+  ACanvas.Line(WorldToDispCoord(FStartPoint), WorldToDispCoord(FEndPoint));
 end;
 
 procedure TLine.Move(ADisplacement: TDoublePoint);
 begin
-  FParamStartPoint += ADisplacement;
-  FParamEndPoint += ADisplacement;
+  FStartPoint += ADisplacement;
+  FEndPoint += ADisplacement;
 end;
 
 function TLine.IsIntersect(ADoubleRect: TDoubleRect): Boolean;
 begin
   with ADoubleRect do begin
     Result :=
-      IntersectRect(FParamStartPoint, FParamEndPoint, ADoubleRect) or
-      PointInsideRect(FParamStartPoint, ADoubleRect) or
-      PointInsideRect(FParamEndPoint, ADoubleRect);
+      IntersectRect(FStartPoint, FEndPoint, ADoubleRect) or
+      PointInsideRect(FStartPoint, ADoubleRect) or
+      PointInsideRect(FEndPoint, ADoubleRect);
   end;
 end;
 
 function TLine.IsPointInside(ADoublePoint: TDoublePoint): Boolean;
 begin
-  Result := PointInsideSegment(FParamStartPoint, FParamEndPoint, ADoublePoint, FParamLineWidth.Width);
+  Result := PointInsideSegment(FStartPoint, FEndPoint, ADoublePoint, FParamLineWidth.Width);
 end;
 
 { TSelection }

@@ -107,32 +107,10 @@ type
   TParamYCoeff = class(TParamInteger)
   end;
 
-  { TParamVertexes }
-
-  TParamVertexes = class(TParam)
-  private
-    FVertexes: array of TDoublePoint;
-  public
-    procedure AddVertex(ADoublePoint: TDoublePoint);
-    function GetVertex(AIndex: Integer): TDoublePointPtr;
-  end;
-
   TParamArr = array of TParam;
 
 implementation
 
-{ TParamVertexes }
-
-procedure TParamVertexes.AddVertex(ADoublePoint: TDoublePoint);
-begin
-  SetLength(FVertexes, Length(FVertexes) + 1);
-  FVertexes[High(FVertexes)] := ADoublePoint;
-end;
-
-function TParamVertexes.GetVertex(AIndex: Integer): TDoublePointPtr;
-begin
-  Result := @FVertexes[AIndex];
-end;
 
 { TParamInteger }
 
@@ -153,7 +131,7 @@ end;
 
 function TParamInteger.GetStrValue: String;
 begin
-  result := IntToStr(Value);
+  Result := IntToStr(Value);
 end;
 
 { TParamCorners }
