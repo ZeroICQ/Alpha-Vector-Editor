@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Math, Dialogs, Menus,
   ExtCtrls, StdCtrls, aboutprogram, LCLType, Spin, Buttons, ActnList, Grids,
-  UFigures, UTools, UTransform, Types, UAppState, USave;
+  UFigures, UTools, UTransform, Types, UAppState, USaveLoad;
 
 type
 
@@ -464,21 +464,28 @@ end;
 
 procedure TVectorEditor.OpenFileActionExecute(Sender: TObject);
 begin
-
+  //сделать предупреждение о потере данныx
+  if OpenFileDialog.Execute then begin
+    if not FileLoad(OpenFileDialog.FileName, Figures) then
+      ShowMessage('Неподдерижваемый формат');
+  end;
 end;
 
 procedure TVectorEditor.SaveFileActionExecute(Sender: TObject);
 begin
-  //if GetFileState = fisSaved then
-  //Save;
+  if GetFileState = fisSaved then
+    SaveFile(GetFilePath, Figures);
 end;
 
 procedure TVectorEditor.SaveFileAsActionExecute(Sender: TObject);
 begin
   SaveFileDialog.FileName := GetFilePath;
   SaveFileDialog.InitialDir := GetCurrentDir;
-  if SaveFileDialog.Execute then
+  if SaveFileDialog.Execute then begin
     SaveFile(SaveFileDialog.FileName, Figures);
+    SetFileStateSaved;
+  end;
+
 end;
 procedure TVectorEditor.ClearMenuItemClick(Sender: TObject);
 begin

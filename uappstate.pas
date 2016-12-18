@@ -10,15 +10,18 @@ uses
 type
   TAppState = (apsNewFile, apsNotModified, apsModified);
   TFileState = (fisNotSaved, fisSaved);
+  TTwoDStrArr = array of array of String;
 
   procedure SetAppState(AAppState: TAppState);
   procedure SetAppStateNewFile;
   procedure SetAppStateModified;
   procedure SetAppStateNotModified;
+  procedure SetFileStateSaved;
   procedure InitSaveLoad(AForm: TForm);
   function GetAppState: TAppState;
   function GetFileState: TFileState;
   function GetFilePath: String;
+
 implementation
 
 var
@@ -51,6 +54,11 @@ procedure SetAppStateNotModified;
 begin
   AppState := apsNotModified;
   AppForm.Caption := FilePath;
+end;
+
+procedure SetFileStateSaved;
+begin
+  FileState := fisSaved;
 end;
 
 procedure InitSaveLoad(AForm: TForm);

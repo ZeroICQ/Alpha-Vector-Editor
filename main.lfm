@@ -1,7 +1,7 @@
 object VectorEditor: TVectorEditor
   Left = 529
   Height = 655
-  Top = 79
+  Top = 41
   Width = 722
   Caption = 'VectorEditor'
   ClientHeight = 635
@@ -446,7 +446,7 @@ object VectorEditor: TVectorEditor
     top = 112
   end
   object ActionList: TActionList
-    left = 288
+    left = 320
     top = 168
     object SaveFileAction: TAction
       Caption = 'SaveFileAction'
@@ -465,7 +465,6 @@ object VectorEditor: TVectorEditor
   end
   object SaveFileDialog: TSaveDialog
     DefaultExt = '.vgi'
-    FileName = 'C:\programming\Pascal\Alpha-Vector-Editor\New Image.vgi'
     Filter = 'Default|*.vgi'
     InitialDir = 'C:\programming\Pascal\Alpha-Vector-Editor\'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
@@ -474,8 +473,9 @@ object VectorEditor: TVectorEditor
   end
   object OpenFileDialog: TOpenDialog
     DefaultExt = '.vgi'
-    Filter = 'Default|.vgi'
-    left = 240
+    Filter = 'Default|*.vgi'
+    Options = [ofPathMustExist, ofFileMustExist, ofEnableSizing, ofViewDetail]
+    left = 248
     top = 168
   end
 end

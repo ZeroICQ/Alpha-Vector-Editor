@@ -36,6 +36,7 @@ type
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
   published
+    property Value: Integer read FLineWidth write FLineWidth;
     function GetStrValue: String;
   end;
 
@@ -51,6 +52,7 @@ type
     procedure SetValue(ALineStyle: TFPPenStyle); override;
     function Compare(AParam: TParam): Boolean; override;
   published
+    property Value: TFPPenStyle read FLineStyle write FLineStyle;
     function GetStrValue: String;
   end;
 
@@ -66,6 +68,7 @@ type
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
   published
+    property Value: TFPBrushStyle read FBrushStyle write FBrushStyle;
     function GetStrValue: String;
   end;
 
@@ -80,6 +83,7 @@ type
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
   published
+    property Value: Integer read FCorners write FCorners;
     function GetStrValue: String;
   end;
 
@@ -89,11 +93,11 @@ type
   private
     FValue: Integer;
   public
-    property Value: Integer read FValue write FValue;
     procedure SetValue(AValue: Integer); override;
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
   published
+    property Value: Integer read FValue write FValue;
     function GetStrValue: String;
   end;
 

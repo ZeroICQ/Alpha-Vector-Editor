@@ -20,6 +20,7 @@ type
     FLineStyle: TParamLineStyle;
   public
     function GetStrCoord: String; virtual; abstract;
+    procedure SetCoord(ACoords: TTwoDStrArr); virtual; abstract;
     property IsSelected: Boolean read FIsSelected write FIsSelected;
     procedure DrawFigure(ACanvas: TCanvas); virtual; abstract;
     procedure AddParam(AParam: TParam);
@@ -29,6 +30,8 @@ type
     function GetBounds: TDoubleRect; virtual; abstract;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; virtual; abstract;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; virtual; abstract;
+    procedure CreateParams;
+    constructor CreateEmtpyProps;
     constructor Create(APenColor: TColor);
   published
     property FParamLineWidth: TParamLineWidth read FLineWidth write FLineWidth;
@@ -43,12 +46,14 @@ type
     FVertexes: array of TDoublePoint;
   public
     function GetStrCoord: String; override;
+    procedure SetCoord(ACoords: TTwoDStrArr); override;
     procedure DrawFigure(ACanvas: TCanvas); override;
     procedure Move(ADisplacement: TDoublePoint); override;
     procedure AddPoint(ADoublePoint: TDoublePoint);
     function GetBounds: TDoubleRect; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
+    constructor CreateEmtpyProps(ACoords: TTwoDStrArr);
     constructor Create(AFirstDoublePoint: TDoublePoint; APenColor: TColor);
   end;
 
@@ -67,6 +72,8 @@ type
     FBrushStyle: TParamBrushStyle;
   public
     procedure Draw(ACanvas: TCanvas); override;
+    procedure CreateParams;
+    constructor CreateEmtpyProps;
     constructor Create(APenColor, ABrushColor: TColor);
   published
     property FParamBrushStyle: TParamBrushStyle read FBrushStyle write FBrushStyle;
@@ -80,10 +87,12 @@ type
     FFigureBounds: TDoubleRect;
   public
     function GetStrCoord: String; override;
+    procedure SetCoord(ACoords: TTwoDStrArr); override;
     property FParamFigureBounds: TDoubleRect read FFigureBounds write FFigureBounds;
     procedure Move(ADisplacement: TDoublePoint); override;
     function GetBounds: TDoubleRect; override;
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
+    constructor CreateEmptyProps(ACoords: TTwoDStrArr);
     constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor);
   end;
 
@@ -106,6 +115,8 @@ type
     procedure DrawFigure(ACanvas: TCanvas); override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
+    procedure CreateParams;
+    constructor CreateEmtpyProps(ACoords: TTwoDStrArr);
     constructor Create(ADoublePoint: TDoublePoint; APenColor, ABrushColor: TColor);
   published
     property FParamXCoeff: TParamXCoeff read FXCoeff write FXCoeff;
@@ -120,13 +131,15 @@ type
     FEndPoint: TDoublePoint;
   public
     function GetStrCoord: String; override;
+    procedure SetCoord(ACoords: TTwoDStrArr); override;
     procedure DrawFigure(ACanvas: TCanvas); override;
     procedure Move(ADisplacement: TDoublePoint); override;
-    constructor Create(ADoublePoint: TDoublePoint; APenColor: TColor);
     procedure SetSecondPoint(ADoublePoint: TDoublePoint); override;
     function GetBounds: TDoubleRect; override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
+    constructor CreateEmtpyProps(ACoords: TTwoDStrArr);
+    constructor Create(ADoublePoint: TDoublePoint; APenColor: TColor);
   end;
 
   { TEllipse }
@@ -156,6 +169,7 @@ type
     FCirclePoint: TDoublePoint;
   public
     function GetStrCoord: String; override;
+    procedure SetCoord(ACoords: TTwoDStrArr); override;
     procedure UpdateFigure;
     procedure DrawFigure(ACanvas: TCanvas); override;
     procedure Move(ADisplacement: TDoublePoint); override;
@@ -163,13 +177,16 @@ type
     function GetBounds: TDoubleRect; override;
     function IsIntersect(ADoubleRect: TDoubleRect): Boolean; override;
     function IsPointInside(ADoublePoint: TDoublePoint): Boolean; override;
+    procedure CreateParams;
+    constructor CreateEmtpyProps(ACoords: TTwoDStrArr);
     constructor Create(ACenterPoint: TDoublePoint; APenColor, ABrushColor: TColor);
   published
     property FParamCorners: TParamCorners read FCorners write FCorners ;
   end;
 
+  TFigureArr = array of TFigure;
 var
-  Figures: array of TFigure;
+  Figures: TFigureArr;
 
 implementation
 
@@ -177,7 +194,7 @@ implementation
 
 function FormatPoint(ADoublePoint: TDoublePoint): String;
 begin
-  Result := Format('%F:%F; ',[ADoublePoint.X, ADoublePoint.Y])
+  Result := Format('%F:%F;',[ADoublePoint.X, ADoublePoint.Y])
 end;
 
 function IntersectSegments(APointA, APointB, APointC, APointD: TDoublePoint): Boolean;
@@ -279,10 +296,7 @@ constructor TRoundRectangle.Create(ADoublePoint: TDoublePoint; APenColor,
   ABrushColor: TColor);
 begin
   Inherited Create(ADoublePoint, APenColor, ABrushColor);
-  FParamXCoeff := TParamXCoeff.Create;
-  AddParam(FParamXCoeff);
-  FParamYCoeff := TParamYCoeff.Create;
-  AddParam(FParamYCoeff);
+  CreateParams;
 end;
 
 procedure TRoundRectangle.DrawFigure(ACanvas: TCanvas);
@@ -314,12 +328,33 @@ begin
   DeleteObject(RoundRect);
 end;
 
+procedure TRoundRectangle.CreateParams;
+begin
+  FParamXCoeff := TParamXCoeff.Create;
+  AddParam(FParamXCoeff);
+  FParamYCoeff := TParamYCoeff.Create;
+  AddParam(FParamYCoeff);
+end;
+
+constructor TRoundRectangle.CreateEmtpyProps(ACoords: TTwoDStrArr);
+begin
+  Inherited CreateEmptyProps(ACoords);
+  CreateParams;
+end;
+
 
 { TInscribedFigure }
 
 function TInscribedFigure.GetStrCoord: String;
 begin
   Result := Concat(FormatPoint(GetBounds.TopLeft), FormatPoint(GetBounds.BottomRight));
+end;
+
+procedure TInscribedFigure.SetCoord(ACoords: TTwoDStrArr);
+begin
+  FFigureBounds := DoubleRect(
+    StrToFloat(ACoords[0,0]), StrToFloat(ACoords[0,1]),
+    StrToFloat(ACoords[1,0]), StrToFloat(ACoords[1,1]));
 end;
 
 procedure TInscribedFigure.Move(ADisplacement: TDoublePoint);
@@ -343,6 +378,16 @@ begin
   FParamFigureBounds := DoubleRect(FParamFigureBounds.TopLeft, ADoublePoint);
 end;
 
+constructor TInscribedFigure.CreateEmptyProps(ACoords: TTwoDStrArr);
+begin
+  Inherited CreateEmtpyProps;
+  if Length(ACoords) > 2 then Exit;
+  FFigureBounds.Left := StrToFloat(ACoords[0, 0]);
+  FFigureBounds.Top := StrToFloat(ACoords[0, 1]);
+  FFigureBounds.Right := StrToFloat(ACoords[1, 0]);
+  FFigureBounds.Bottom := StrToFloat(ACoords[1, 1]);
+end;
+
 constructor TInscribedFigure.Create(ADoublePoint: TDoublePoint; APenColor,
   ABrushColor: TColor);
 begin
@@ -358,9 +403,7 @@ begin
   Inherited Create(APenColor, ABrushColor);
   FCenter := ACenterPoint;
   FCirclePoint := ACenterPoint + 1;
-
-  FParamCorners := TParamCorners.Create;
-  AddParam(FParamCorners);
+  CreateParams;
 end;
 
 procedure TRegularPolygon.DrawFigure(ACanvas: TCanvas);
@@ -372,6 +415,12 @@ end;
 function TRegularPolygon.GetStrCoord: String;
 begin
   Result := Concat(FormatPoint(FCenter), FormatPoint(FCirclePoint));
+end;
+
+procedure TRegularPolygon.SetCoord(ACoords: TTwoDStrArr);
+begin
+  FCenter := DoublePoint(StrToFloat(ACoords[0,0]), StrToFloat(ACoords[0,1]));
+  FCirclePoint := DoublePoint(StrToFloat(ACoords[1,0]), StrToFloat(ACoords[1,1]));
 end;
 
 procedure TRegularPolygon.UpdateFigure;
@@ -433,15 +482,28 @@ begin
   DeleteObject(Polygon);
 end;
 
+procedure TRegularPolygon.CreateParams;
+begin
+  FParamCorners := TParamCorners.Create;
+  AddParam(FParamCorners);
+end;
+
+constructor TRegularPolygon.CreateEmtpyProps(ACoords: TTwoDStrArr);
+begin
+  Inherited CreateEmtpyProps;
+  if Length(ACoords) > 2 then Exit;
+  FCenter := DoublePoint(StrToFloat(ACoords[0, 0]), StrToFloat(ACoords[0, 1]));
+  FCirclePoint := DoublePoint(StrToFloat(ACoords[1, 0]), StrToFloat(ACoords[1, 1]));
+  CreateParams;
+end;
+
 { TFilledFigure }
 
 constructor TFilledFigure.Create(APenColor, ABrushColor: TColor);
 begin
   Inherited Create(APenColor);
   FParamBrushColor := ABrushColor;
-
-  FParamBrushStyle := TParamBrushStyle.Create;
-  AddParam(FParamBrushStyle);
+  CreateParams;
 end;
 
 procedure TFilledFigure.Draw(ACanvas: TCanvas);
@@ -451,6 +513,18 @@ begin
     Brush.Style := FParamBrushStyle.Style;
   end;
   Inherited;
+end;
+
+procedure TFilledFigure.CreateParams;
+begin
+  FParamBrushStyle := TParamBrushStyle.Create;
+  AddParam(FParamBrushStyle);
+end;
+
+constructor TFilledFigure.CreateEmtpyProps;
+begin
+  Inherited CreateEmtpyProps;
+  CreateParams;
 end;
 
 procedure TFigure.AddParam(AParam: TParam);
@@ -468,12 +542,8 @@ end;
 constructor TFigure.Create(APenColor: TColor);
 begin
   SetAppStateModified;
-  IsSelected := False;
   FPenColor := APenColor;
-  FParamLineWidth := TParamLineWidth.Create;
-  AddParam(FParamLineWidth);
-  FParamLineStyle := TParamLineStyle.Create;
-  AddParam(FParamLineStyle);
+  CreateParams;
 end;
 
 procedure TFigure.Draw(ACanvas: TCanvas);
@@ -495,6 +565,20 @@ begin
     for i := Low(FParams) to High(FParams) do FParams[i].Apply(ACanvas);
   end;
   DrawFigure(ACanvas);
+end;
+
+procedure TFigure.CreateParams;
+begin
+  IsSelected := False;
+  FParamLineWidth := TParamLineWidth.Create;
+  AddParam(FParamLineWidth);
+  FParamLineStyle := TParamLineStyle.Create;
+  AddParam(FParamLineStyle);
+end;
+
+constructor TFigure.CreateEmtpyProps;
+begin
+  CreateParams;
 end;
 
 { TPolyline }
@@ -519,6 +603,14 @@ begin
     CoordStr += FormatPoint(FVertexes[i]);
 
   Result := CoordStr;
+end;
+
+procedure TPolyline.SetCoord(ACoords: TTwoDStrArr);
+var i: Integer;
+begin
+  for i := Low(ACoords) to High(ACoords) do begin
+    AddPoint(DoublePoint(StrToFloat(ACoords[i, 0]), StrToFloat(ACoords[i, 1])));
+  end;
 end;
 
 procedure TPolyline.DrawFigure(ACanvas: TCanvas);
@@ -560,6 +652,12 @@ begin
     end;
   end;
   Result := False;
+end;
+
+constructor TPolyline.CreateEmtpyProps(ACoords: TTwoDStrArr);
+begin
+  Inherited CreateEmtpyProps;
+  SetCoord(ACoords);
 end;
 
 { TRectangle }
@@ -653,6 +751,12 @@ begin
   Result := Concat(FormatPoint(FStartPoint), FormatPoint(FEndPoint));
 end;
 
+procedure TLine.SetCoord(ACoords: TTwoDStrArr);
+begin
+  FStartPoint := DoublePoint(StrToFloat(ACoords[0,0]), StrToFloat(ACoords[0,1]));
+  FEndPoint := DoublePoint(StrToFloat(ACoords[1,0]), StrToFloat(ACoords[1,1]));
+end;
+
 procedure TLine.DrawFigure(ACanvas: TCanvas);
 begin
   ACanvas.Line(WorldToDispCoord(FStartPoint), WorldToDispCoord(FEndPoint));
@@ -679,6 +783,14 @@ begin
   Result := PointInsideSegment(FStartPoint, FEndPoint, ADoublePoint, FParamLineWidth.Width);
 end;
 
+constructor TLine.CreateEmtpyProps(ACoords: TTwoDStrArr);
+begin
+  Inherited CreateEmtpyProps;
+  if Length(ACoords) > 2 then Exit; //лучше бы ошибку кидать, но времени нет
+  FStartPoint := DoublePoint(StrToFloat(ACoords[0, 0]), StrToFloat(ACoords[0, 1]));
+  FEndPoint := DoublePoint(StrToFloat(ACoords[1, 0]), StrToFloat(ACoords[1, 1]));
+end;
+
 { TSelection }
 procedure TSelection.DrawFigure(ACanvas: TCanvas);
 begin
@@ -691,6 +803,16 @@ begin
   FParamLineWidth.SetValue(1);
   FParamLineStyle.SetValue(psDash);
 end;
+
+initialization
+
+RegisterClass(TFigure);
+RegisterClass(TPolyline);
+RegisterClass(TRectangle);
+RegisterClass(TRoundRectangle);
+RegisterClass(TLine);
+RegisterClass(TEllipse);
+RegisterClass(TRegularPolygon);
 
 end.
 
