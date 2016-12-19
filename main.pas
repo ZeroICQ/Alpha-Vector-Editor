@@ -1,5 +1,11 @@
 unit main;
+{Список вопросов:
+ Почему FindClass возвращает TPersistent? Какой вообще смысл в этой функции?
+ Можно ли избавиться от case в load?
 
+ Почему падает при даблклике?
+
+ }
 {$mode objfpc}{$H+}
 
 interface
@@ -13,6 +19,7 @@ type
 
   { TVectorEditor }
   TVectorEditor = class(TForm)
+    ClearFigures: TAction;
     FileDivider2MenuItem: TMenuItem;
     OpenFileDialog: TOpenDialog;
     SaveFileDialog: TSaveDialog;
@@ -63,9 +70,9 @@ type
     VerticalScrollBar: TScrollBar;
     ToolPanel: TPanel;
     procedure AboutMenuItemClick(Sender: TObject);
+    procedure ClearFiguresExecute(Sender: TObject);
     procedure OpenFileActionExecute(Sender: TObject);
     procedure SaveFileActionExecute(Sender: TObject);
-    procedure ClearMenuItemClick(Sender: TObject);
     procedure ExitMenuItemClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure HorizontalScrollBarChange(Sender: TObject);
@@ -92,7 +99,6 @@ type
     procedure ToolClick(Sender: TObject);
     procedure CreateToolsButtons(ABtnWidth, ABtnHeight, AColsCount: Integer);
     procedure FillPalette;
-    procedure ClearCanvas;
     procedure SetScrollBarsPostions;
     procedure SaveFigure(Figure: TFigure);
     procedure RedefineImageBounds;
@@ -156,18 +162,6 @@ begin
         end;
       end;
   end;
-end;
-
-procedure TVectorEditor.ClearCanvas;
-var i: Integer;
-begin
-  for i := 0 to High(Figures) do
-    Figures[i].Free;
-  Figures := nil;
-  //RedefineImageBounds(DoubleRect(0, 0, 0, 0)); работает несовсем правильно
-  SetCanvasOffset(0, 0);
-  Scale := 1.0;
-  PaintBox.Invalidate;
 end;
 
 procedure TVectorEditor.UpdateDimensions;
@@ -365,13 +359,14 @@ end;
 procedure TVectorEditor.PaintBoxPaint(Sender: TObject);
 var i:integer;
 begin
-  RedefineImageBounds;
   for i := 0 to High(Figures) do begin
-    Figures[i].Draw(PaintBox.Canvas);
+    if Figures[i] <> Nil then
+      Figures[i].Draw(PaintBox.Canvas);
   end;
   if isDrawing and (CurrentTool.GetFigure <> nil) then begin
     CurrentTool.GetFigure.Draw(PaintBox.Canvas);
   end;
+  RedefineImageBounds;
   UpdateScale;
   SetScrollBarsPostions;
   {DEBUG}
@@ -453,7 +448,6 @@ begin
       (DispDimensions.Width - WorldToDispDimension(ImgWorldWidth)) / 2,
     WorldToDispDimension(ImageBounds.Top) -
       (DispDimensions.Height - WorldToDispDimension(ImgWorldHeight)) / 2);
-  SetAppStateModified;
   PaintBox.Invalidate;
 end;
 
@@ -462,11 +456,37 @@ begin
   aboutprogram.aboutProgramForm.Show;
 end;
 
+procedure TVectorEditor.ClearFiguresExecute(Sender: TObject);
+var i: Integer;
+begin
+  for i := Low(Figures) to High(Figures) do
+    Figures[i].Free;
+  Figures := nil;
+  //RedefineImageBounds(DoubleRect(0, 0, 0, 0)); работает несовсем правильно
+  SetCanvasOffset(0, 0);
+  Scale := 1.0;
+  PaintBox.Invalidate;
+end;
+
 procedure TVectorEditor.OpenFileActionExecute(Sender: TObject);
+var
+  ImgWorldWidth: Double;
+  ImgWorldHeight: Double;
 begin
   //сделать предупреждение о потере данныx
   if OpenFileDialog.Execute then begin
-    if not FileLoad(OpenFileDialog.FileName, Figures) then
+    if FileLoad(OpenFileDialog.FileName, Figures) then begin
+      ImgWorldWidth := ImageBounds.Right - ImageBounds.Left;
+      ImgWorldHeight := ImageBounds.Bottom - ImageBounds.Top;
+      RedefineImageBounds;
+      SetCanvasOffset(
+        WorldToDispDimension(ImageBounds.Left) -
+          (DispDimensions.Width - WorldToDispDimension(ImgWorldWidth)) / 2,
+        WorldToDispDimension(ImageBounds.Top) -
+          (DispDimensions.Height - WorldToDispDimension(ImgWorldHeight)) / 2);
+        Invalidate;
+    end
+    else
       ShowMessage('Неподдерижваемый формат');
   end;
 end;
@@ -474,7 +494,9 @@ end;
 procedure TVectorEditor.SaveFileActionExecute(Sender: TObject);
 begin
   if GetFileState = fisSaved then
-    SaveFile(GetFilePath, Figures);
+    SaveFile(GetFilePath, Figures)
+  else
+    SaveFileAsAction.Execute;
 end;
 
 procedure TVectorEditor.SaveFileAsActionExecute(Sender: TObject);
@@ -483,13 +505,8 @@ begin
   SaveFileDialog.InitialDir := GetCurrentDir;
   if SaveFileDialog.Execute then begin
     SaveFile(SaveFileDialog.FileName, Figures);
-    SetFileStateSaved;
   end;
 
-end;
-procedure TVectorEditor.ClearMenuItemClick(Sender: TObject);
-begin
-  ClearCanvas;
 end;
 
 end.

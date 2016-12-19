@@ -1,7 +1,7 @@
 object VectorEditor: TVectorEditor
-  Left = 529
+  Left = 501
   Height = 655
-  Top = 41
+  Top = 98
   Width = 722
   Caption = 'VectorEditor'
   ClientHeight = 635
@@ -399,8 +399,8 @@ object VectorEditor: TVectorEditor
         OnClick = ShowEverythingMenuItemClick
       end
       object ClearMenuItem: TMenuItem
+        Action = ClearFigures
         Caption = 'Очистить'
-        OnClick = ClearMenuItemClick
       end
       object FileDividerMenuItem: TMenuItem
         Caption = '-'
@@ -461,6 +461,10 @@ object VectorEditor: TVectorEditor
     object SaveFileAsAction: TAction
       Caption = 'SaveFileAsAction'
       OnExecute = SaveFileAsActionExecute
+    end
+    object ClearFigures: TAction
+      Caption = 'ClearFigures'
+      OnExecute = ClearFiguresExecute
     end
   end
   object SaveFileDialog: TSaveDialog

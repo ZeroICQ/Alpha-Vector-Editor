@@ -43,11 +43,11 @@ var
   ParamProp: TObject;
 begin
   case AClass of
-    'TRectangle': Figure := TRectangle.CreateEmptyProps(ACoords);
+    'TRectangle':      Figure := TRectangle.CreateEmptyProps(ACoords);
     'TRoundRectangle': Figure := TRoundRectangle.CreateEmtpyProps(ACoords);
-    'TLine': Figure := TLine.CreateEmtpyProps(ACoords);
-    'TPolyline': Figure :=  TPolyline.CreateEmtpyProps(ACoords);
-    'TEllipse': Figure := TEllipse.CreateEmptyProps(ACoords);
+    'TLine':           Figure := TLine.CreateEmtpyProps(ACoords);
+    'TPolyline':       Figure := TPolyline.CreateEmtpyProps(ACoords);
+    'TEllipse':        Figure := TEllipse.CreateEmptyProps(ACoords);
     'TRegularPolygon': Figure := TRegularPolygon.CreateEmtpyProps(ACoords);
   end;
 
@@ -74,7 +74,6 @@ begin
   for i := 1 To WordCount(AStr, [';']) do begin
     Param := ExtractDelimited(i, AStr, [';']);
     SetLength(SplitedParams, Length(SplitedParams) + 1);
-
     SetLength(SplitedParams[i - 1], 2);
     SplitedParams[i - 1, 0] := ExtractDelimited(1, Param, [':']);
     SplitedParams[i - 1, 1] := ExtractDelimited(2, Param, [':']);
@@ -121,6 +120,9 @@ begin
   finally
     Close(OutFile);
   end;
+  SetFilePath(APath);
+  SetAppStateNotModified;
+  SetFileStateSaved;
 end;
 
 function FileLoad(APath: String; var AFigures: TFigureArr): Boolean;
@@ -132,10 +134,9 @@ var
   SplitedCoords: TTwoDStrArr;
   i: Integer;
 begin
-  for i := Low(Figures) to High(Figures) do
-    Figures[i].Free;
-  Figures := nil;
-
+  for i := Low(AFigures) to High(AFigures) do
+    FreeAndNil(AFigures[i]);
+  AFigures := nil;
   try
     Assign(InpFile, APath);
     Reset(InpFile);
@@ -149,13 +150,16 @@ begin
       Readln(InpFile, FigureStrParams);
       SplitedCoords := SplitParams(FigureCoords);
       SplitedParams := SplitParams(FigureStrParams);
-      SetLength(Figures, Length(Figures) + 1);
-      Figures[High(Figures)] := CreateFigure(FigureClass, SplitedCoords, SplitedParams);
+      SetLength(AFigures, Length(AFigures) + 1);
+      AFigures[High(AFigures)] := CreateFigure(FigureClass, SplitedCoords, SplitedParams);
     end;
 
   finally
     Close(InpFile);
   end;
+  SetFilePath(APath);
+  SetAppStateNotModified;
+  SetFileStateSaved;
   Exit(True);
 end;
 

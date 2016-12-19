@@ -17,10 +17,12 @@ type
   procedure SetAppStateModified;
   procedure SetAppStateNotModified;
   procedure SetFileStateSaved;
+  procedure SetFileStateNotSaved;
   procedure InitSaveLoad(AForm: TForm);
   function GetAppState: TAppState;
   function GetFileState: TFileState;
   function GetFilePath: String;
+  procedure SetFilePath(APath: String);
 
 implementation
 
@@ -53,12 +55,17 @@ end;
 procedure SetAppStateNotModified;
 begin
   AppState := apsNotModified;
-  AppForm.Caption := FilePath;
+  AppForm.Caption := FilePath + ' - ' + AppName;
 end;
 
 procedure SetFileStateSaved;
 begin
   FileState := fisSaved;
+end;
+
+procedure SetFileStateNotSaved;
+begin
+  FileState := fisNotSaved;
 end;
 
 procedure InitSaveLoad(AForm: TForm);
@@ -81,6 +88,11 @@ end;
 function GetFilePath: String;
 begin
   Result := FilePath;
+end;
+
+procedure SetFilePath(APath: String);
+begin
+  FilePath := APath;
 end;
 
 end.

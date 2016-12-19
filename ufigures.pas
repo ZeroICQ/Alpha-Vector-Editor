@@ -11,7 +11,7 @@ uses
 type
   { TFigure }
 
-  TFigure = class(TPersistent)
+  TFigure = class(TObject)
   private
     FIsSelected: Boolean;
     FParams: array of TParam;
@@ -544,6 +544,7 @@ begin
   SetAppStateModified;
   FPenColor := APenColor;
   CreateParams;
+  SetAppStateModified;
 end;
 
 procedure TFigure.Draw(ACanvas: TCanvas);
@@ -806,13 +807,13 @@ end;
 
 initialization
 
-RegisterClass(TFigure);
+{RegisterClass(TFigure);
 RegisterClass(TPolyline);
 RegisterClass(TRectangle);
 RegisterClass(TRoundRectangle);
 RegisterClass(TLine);
 RegisterClass(TEllipse);
-RegisterClass(TRegularPolygon);
+RegisterClass(TRegularPolygon);}
 
 end.
 
