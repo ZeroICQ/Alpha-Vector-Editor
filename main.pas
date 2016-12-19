@@ -5,6 +5,31 @@ unit main;
 
  Почему падает при даблклике?
 
+
+ procedure TForm1.FormCreate(Sender: TObject);
+begin
+  RegisterClasses([TButton, TForm]);
+end;
+
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+  CRef : TPersistentClass;
+  AControl : TControl;
+begin
+  CRef := GetClass('TButton');
+  if CRef<>nil then
+  begin
+     AControl := TControl(TControlClass(CRef).Create(Self));
+     with AControl do
+     begin
+        Parent := Self;
+        Width := 50;
+        Height := 30;
+     end;
+  end;
+end;
+
  }
 {$mode objfpc}{$H+}
 
