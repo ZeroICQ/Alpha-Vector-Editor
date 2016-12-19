@@ -514,9 +514,9 @@ begin
   //сделать предупреждение о потере данныx
   if OpenFileDialog.Execute then begin
     if FileLoad(OpenFileDialog.FileName, Figures) then begin
+      RedefineImageBounds;
       ImgWorldWidth := ImageBounds.Right - ImageBounds.Left;
       ImgWorldHeight := ImageBounds.Bottom - ImageBounds.Top;
-      RedefineImageBounds;
       SetCanvasOffset(
         WorldToDispDimension(ImageBounds.Left) -
           (DispDimensions.Width - WorldToDispDimension(ImgWorldWidth)) / 2,
