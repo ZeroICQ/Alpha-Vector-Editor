@@ -9,6 +9,7 @@ object VectorEditor: TVectorEditor
   Color = clWhite
   KeyPreview = True
   Menu = MainMenu
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   LCLVersion = '1.6.0.4'
   object PaintBox: TPaintBox

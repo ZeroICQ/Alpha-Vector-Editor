@@ -71,6 +71,7 @@ type
     ToolPanel: TPanel;
     procedure AboutMenuItemClick(Sender: TObject);
     procedure ClearFiguresExecute(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure OpenFileActionExecute(Sender: TObject);
     procedure SaveFileActionExecute(Sender: TObject);
     procedure ExitMenuItemClick(Sender: TObject);
@@ -466,6 +467,18 @@ begin
   SetCanvasOffset(0, 0);
   Scale := 1.0;
   PaintBox.Invalidate;
+end;
+
+procedure TVectorEditor.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+var
+  UserAnswer: Integer;
+begin
+  if GetAppState = apsModified then begin
+    UserAnswer := MessageDlg('Сохранить?','Сохранить файл перед выходом?', mtConfirmation,[mbYes,mbNo,mbCancel],0);
+    if UserAnswer = mrYes then SaveFileAction.Execute
+    else if UserAnswer = mrNo then CanClose := True
+    else if  UserAnswer = mrCancel then CanClose := False;
+  end;
 end;
 
 procedure TVectorEditor.OpenFileActionExecute(Sender: TObject);
