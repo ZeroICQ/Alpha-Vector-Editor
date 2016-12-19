@@ -6,7 +6,7 @@ interface
 
 uses
   Controls, UTransform, windows, Classes, SysUtils, Graphics, FPCanvas, LCL,
-  math, UParamEditor, UParameters, UAppState, strutils;
+  math, UParameters, UAppState;
 
 type
   { TFigure }
