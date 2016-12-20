@@ -131,6 +131,7 @@ type
     procedure UpdateScale;
     procedure VerticalScrollBarChange(Sender: TObject);
     procedure UpdateDimensions;
+    function ShowWarningDialog: Integer;
   private
     { private declarations }
 
@@ -195,6 +196,12 @@ begin
   DispDimensions := Dimensions(
     PaintBox.ClientWidth - 1,
     PaintBox.ClientHeight - 1);
+end;
+
+function TVectorEditor.ShowWarningDialog: Integer;
+begin
+  Result := MessageDlg(
+    'Сохранить?','Сохранить файл перед выходом?', mtConfirmation,[mbYes,mbNo,mbCancel],0);
 end;
 
 procedure TVectorEditor.SetScrollBarsPostions;
@@ -499,7 +506,7 @@ var
   UserAnswer: Integer;
 begin
   if GetAppState = apsModified then begin
-    UserAnswer := MessageDlg('Сохранить?','Сохранить файл перед выходом?', mtConfirmation,[mbYes,mbNo,mbCancel],0);
+    UserAnswer := ShowWarningDialog;
     if UserAnswer = mrYes then SaveFileAction.Execute
     else if UserAnswer = mrNo then CanClose := True
     else if  UserAnswer = mrCancel then CanClose := False;
@@ -510,7 +517,13 @@ procedure TVectorEditor.OpenFileActionExecute(Sender: TObject);
 var
   ImgWorldWidth: Double;
   ImgWorldHeight: Double;
+  UserAnswer: Integer;
 begin
+  if GetAppState = apsModified then begin
+    UserAnswer := ShowWarningDialog;
+    if UserAnswer = mrYes then SaveFileAction.Execute
+    else if UserAnswer = mrCancel then Exit;
+  end;
   //сделать предупреждение о потере данныx
   if OpenFileDialog.Execute then begin
     if FileLoad(OpenFileDialog.FileName, Figures) then begin
