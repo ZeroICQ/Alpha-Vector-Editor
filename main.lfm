@@ -11,7 +11,7 @@ object VectorEditor: TVectorEditor
   Menu = MainMenu
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.2.6.0'
   object PaintBox: TPaintBox
     AnchorSideLeft.Control = ToolPanel
     AnchorSideLeft.Side = asrBottom

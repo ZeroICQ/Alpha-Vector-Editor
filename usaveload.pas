@@ -33,7 +33,7 @@ end;
 
 function CreateFigure(AClass: String; ACoords, AParams: TTwoDStrArr):  TFigure;
 var
-  i: Integer;
+  i, j: Integer;
   Figure: TFigure;
   FigureClass: TClass;
   PropList: PPropList;
@@ -42,6 +42,10 @@ var
   PropKind: TTypeKind;
   ParamProp: TObject;
 begin
+  {for j := Low(FiguresClasses) to High(FiguresClasses) do begin
+    if FiguresClasses[j].ClassName = AClass then
+      FiguresClasses[j].CreateEmtpyProps;
+  end;}
   case AClass of
     'TRectangle':      Figure := TRectangle.CreateEmptyProps(ACoords);
     'TRoundRectangle': Figure := TRoundRectangle.CreateEmtpyProps(ACoords);

@@ -185,12 +185,21 @@ type
   end;
 
   TFigureArr = array of TFigure;
+  TFigureClass = class of TFigure;
+  TFigureClassArr = array of TFigureClass;
 var
   Figures: TFigureArr;
+  FiguresClasses: TFigureClassArr;
 
 implementation
 
 { Misc }
+
+procedure RegisterFigureClass(AFigureClass: TFigureClass);
+begin
+  SetLength(FiguresClasses, Length(FiguresClasses) + 1);
+  FiguresClasses[High(FiguresClasses)] := AFigureClass;
+end;
 
 function FormatPoint(ADoublePoint: TDoublePoint): String;
 begin
@@ -814,5 +823,12 @@ RegisterClass(TLine);
 RegisterClass(TEllipse);
 RegisterClass(TRegularPolygon);}
 
+{RegisterFigureClass(TFigure);
+RegisterFigureClass(TPolyline);
+RegisterFigureClass(TRectangle);
+RegisterFigureClass(TRoundRectangle);
+RegisterFigureClass(TLine);
+RegisterFigureClass(TEllipse);
+RegisterFigureClass(TRegularPolygon);}
 end.
 
