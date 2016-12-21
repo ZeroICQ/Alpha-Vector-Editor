@@ -101,7 +101,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="11">
       <Unit0>
         <Filename Value="VectorGraphicsEditor.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -155,6 +155,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="USaveLoad"/>
       </Unit9>
+      <Unit10>
+        <Filename Value="uhistory.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UHistory"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -1,11 +1,11 @@
 object VectorEditor: TVectorEditor
-  Left = 501
-  Height = 655
-  Top = 98
-  Width = 722
+  Left = 589
+  Height = 675
+  Top = 141
+  Width = 986
   Caption = 'VectorEditor'
-  ClientHeight = 635
-  ClientWidth = 722
+  ClientHeight = 655
+  ClientWidth = 986
   Color = clWhite
   KeyPreview = True
   Menu = MainMenu
@@ -20,9 +20,9 @@ object VectorEditor: TVectorEditor
     AnchorSideRight.Control = VerticalScrollBar
     AnchorSideBottom.Control = DebugPanel
     Left = 145
-    Height = 467
+    Height = 468
     Top = 84
-    Width = 557
+    Width = 821
     Align = alCustom
     Anchors = [akTop, akLeft, akRight, akBottom]
     ParentColor = False
@@ -36,12 +36,12 @@ object VectorEditor: TVectorEditor
   end
   object ToolPanel: TPanel
     Left = 0
-    Height = 635
+    Height = 655
     Top = 0
     Width = 145
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 635
+    ClientHeight = 655
     ClientWidth = 145
     Color = 16119285
     ParentColor = False
@@ -111,7 +111,7 @@ object VectorEditor: TVectorEditor
       AnchorSideBottom.Control = ToolPanel
       AnchorSideBottom.Side = asrBottom
       Left = 0
-      Height = 607
+      Height = 627
       Top = 28
       Width = 145
       Anchors = [akTop, akLeft, akRight, akBottom]
@@ -145,8 +145,8 @@ object VectorEditor: TVectorEditor
     AnchorSideBottom.Side = asrBottom
     Left = 145
     Height = 20
-    Top = 615
-    Width = 557
+    Top = 635
+    Width = 821
     Anchors = [akLeft, akRight, akBottom]
     Max = 0
     PageSize = 1
@@ -161,8 +161,8 @@ object VectorEditor: TVectorEditor
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = HorizontalScrollBar
-    Left = 702
-    Height = 615
+    Left = 966
+    Height = 635
     Top = 0
     Width = 20
     Anchors = [akTop, akRight, akBottom]
@@ -179,15 +179,14 @@ object VectorEditor: TVectorEditor
     AnchorSideRight.Control = VerticalScrollBar
     AnchorSideBottom.Control = HorizontalScrollBar
     Left = 145
-    Height = 64
-    Top = 551
-    Width = 557
+    Height = 83
+    Top = 552
+    Width = 821
     Anchors = [akLeft, akRight, akBottom]
-    ClientHeight = 64
-    ClientWidth = 557
+    ClientHeight = 83
+    ClientWidth = 821
     ParentColor = False
     TabOrder = 3
-    Visible = False
     object OffsetXLabel: TLabel
       Left = 8
       Height = 15
@@ -317,6 +316,46 @@ object VectorEditor: TVectorEditor
       Caption = 'ScrollbarPosLabel'
       ParentColor = False
     end
+    object Buffercaption: TLabel
+      Left = 544
+      Height = 15
+      Top = 2
+      Width = 72
+      Caption = 'Buffercaption'
+      ParentColor = False
+    end
+    object BufferCurrent: TLabel
+      Left = 544
+      Height = 15
+      Top = 16
+      Width = 72
+      Caption = 'BufferCurrent'
+      ParentColor = False
+    end
+    object BufferStart: TLabel
+      Left = 545
+      Height = 15
+      Top = 32
+      Width = 56
+      Caption = 'BufferStart'
+      ParentColor = False
+    end
+    object BufferEnd: TLabel
+      Left = 544
+      Height = 15
+      Top = 42
+      Width = 52
+      Caption = 'BufferEnd'
+      ParentColor = False
+    end
+    object BufferSaved: TLabel
+      Left = 545
+      Height = 15
+      Top = 58
+      Width = 63
+      Caption = 'BufferSaved'
+      ParentColor = False
+    end
   end
   object ColorPanel: TPanel
     AnchorSideLeft.Control = ToolPanel
@@ -326,10 +365,10 @@ object VectorEditor: TVectorEditor
     Left = 145
     Height = 84
     Top = 0
-    Width = 557
+    Width = 821
     Anchors = [akTop, akLeft, akRight]
     ClientHeight = 84
-    ClientWidth = 557
+    ClientWidth = 821
     ParentColor = False
     TabOrder = 4
     object PaletteGrid: TDrawGrid
@@ -392,9 +431,6 @@ object VectorEditor: TVectorEditor
         Action = SaveFileAsAction
         Caption = 'Сохранить как'
       end
-      object FileDivider2MenuItem: TMenuItem
-        Caption = '-'
-      end
       object ShowEverythingMenuItem: TMenuItem
         Caption = 'Показать всё'
         OnClick = ShowEverythingMenuItemClick
@@ -409,6 +445,16 @@ object VectorEditor: TVectorEditor
       object ExitMenuItem: TMenuItem
         Caption = 'Выйти'
         OnClick = ExitMenuItemClick
+      end
+    end
+    object EditMenuItem: TMenuItem
+      Caption = 'Правка'
+      OnClick = EditMenuItemClick
+      object UndoMenuItem: TMenuItem
+        Action = UndoAction
+      end
+      object RedoMenuItem: TMenuItem
+        Action = RedoAction
       end
     end
     object HelpMenuItem: TMenuItem
@@ -466,6 +512,16 @@ object VectorEditor: TVectorEditor
     object ClearFigures: TAction
       Caption = 'ClearFigures'
       OnExecute = ClearFiguresExecute
+    end
+    object UndoAction: TAction
+      Caption = 'Отмена'
+      OnExecute = UndoActionExecute
+      ShortCut = 16474
+    end
+    object RedoAction: TAction
+      Caption = 'Повтор'
+      OnExecute = RedoActionExecute
+      ShortCut = 16473
     end
   end
   object SaveFileDialog: TSaveDialog

@@ -10,14 +10,24 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Math, Dialogs, Menus,
   ExtCtrls, StdCtrls, aboutprogram, LCLType, Spin, Buttons, ActnList, Grids,
-  UFigures, UTools, UTransform, Types, UAppState, USaveLoad;
+  UFigures, UTools, UTransform, Types, UAppState, USaveLoad, UHistory;
 
 type
 
   { TVectorEditor }
   TVectorEditor = class(TForm)
+    Buffercaption: TLabel;
+    BufferCurrent: TLabel;
+    BufferStart: TLabel;
+    BufferEnd: TLabel;
+    BufferSaved: TLabel;
+    RedoAction: TAction;
+    UndoAction: TAction;
     ClearFigures: TAction;
-    FileDivider2MenuItem: TMenuItem;
+    FileDivider3MenuItem: TMenuItem;
+    EditMenuItem: TMenuItem;
+    RedoMenuItem: TMenuItem;
+    UndoMenuItem: TMenuItem;
     OpenFileDialog: TOpenDialog;
     SaveFileDialog: TSaveDialog;
     SaveFileAsMenuItem: TMenuItem;
@@ -68,8 +78,10 @@ type
     ToolPanel: TPanel;
     procedure AboutMenuItemClick(Sender: TObject);
     procedure ClearFiguresExecute(Sender: TObject);
+    procedure EditMenuItemClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure OpenFileActionExecute(Sender: TObject);
+    procedure RedoActionExecute(Sender: TObject);
     procedure SaveFileActionExecute(Sender: TObject);
     procedure ExitMenuItemClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -100,6 +112,7 @@ type
     procedure SetScrollBarsPostions;
     procedure SaveFigure(Figure: TFigure);
     procedure RedefineImageBounds;
+    procedure UndoActionExecute(Sender: TObject);
     procedure UpdateScale;
     procedure VerticalScrollBarChange(Sender: TObject);
     procedure UpdateDimensions;
@@ -139,6 +152,7 @@ begin
   if Figure <> nil then begin
     SetLength(Figures, Length(Figures) + 1);
     Figures[High(Figures)] := Figure;
+    History.AddState;
   end;
 end;
 
@@ -161,6 +175,12 @@ begin
         end;
       end;
   end;
+end;
+
+procedure TVectorEditor.UndoActionExecute(Sender: TObject);
+begin
+  History.SetPreviousState;
+  PaintBox.Invalidate;
 end;
 
 procedure TVectorEditor.UpdateDimensions;
@@ -293,6 +313,9 @@ var
   BtnWidth, BtnHeight, ColsCount: Integer;
 begin
   InitSaveLoad(Self);
+  History := THistory.Create;
+  RedoMenuItem.Enabled := History.CanForward;
+  UndoMenuItem.Enabled := History.CanBack;
   CurrentTool := Tools[0];
   CurrentTool.Init(ParamPanel);
   //Передаём дефолтный параметры представлению
@@ -473,6 +496,12 @@ begin
   PaintBox.Invalidate;
 end;
 
+procedure TVectorEditor.EditMenuItemClick(Sender: TObject);
+begin
+  RedoMenuItem.Enabled := History.CanForward;
+  UndoMenuItem.Enabled := History.CanBack;
+end;
+
 procedure TVectorEditor.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 var
   UserAnswer: Integer;
@@ -496,7 +525,6 @@ begin
     if UserAnswer = mrYes then SaveFileAction.Execute
     else if UserAnswer = mrCancel then Exit;
   end;
-  //сделать предупреждение о потере данныx
   if OpenFileDialog.Execute then begin
     if FileLoad(OpenFileDialog.FileName, Figures) then begin
       RedefineImageBounds;
@@ -512,6 +540,12 @@ begin
     else
       ShowMessage('Неподдерижваемый формат');
   end;
+end;
+
+procedure TVectorEditor.RedoActionExecute(Sender: TObject);
+begin
+  History.SetNextState;
+  PaintBox.Invalidate;
 end;
 
 procedure TVectorEditor.SaveFileActionExecute(Sender: TObject);

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, math, Controls, SysUtils, UFigures, Graphics, UTransform, ExtCtrls,
-  UParamEditor, FPCanvas, UParameters, UAppState;
+  UParamEditor, FPCanvas, UParameters, UAppState, UHistory;
 
 type
 
@@ -48,10 +48,13 @@ type
   { TMoveTool }
 
   TMoveTool = class(THandTool)
+  private
+    FMoved: Boolean;
   public
     procedure MouseDown(AMousePos: TPoint; APenColor, ABrushColor: TColor;
       AButton: TMouseButton; AShift: TShiftState; AGControl: TGraphicControl); override;
     procedure MouseMove(AMousePos: TPoint); override;
+    procedure MouseUp(AMousePos: TPoint); override;
     constructor Create;
   end;
 
@@ -216,6 +219,7 @@ constructor TMoveTool.Create;
 begin
   Inherited;
   FIcon := 'img/move.bmp';
+  FMoved := False;
 end;
 
 procedure TMoveTool.MouseDown(AMousePos: TPoint; APenColor,
@@ -237,7 +241,16 @@ begin
     if Figures[i].IsSelected then
       Figures[i].Move(Displacement);
   end;
-  SetAppStateModified;
+  FMoved := True;
+end;
+
+procedure TMoveTool.MouseUp(AMousePos: TPoint);
+begin
+  History.AddState;
+  if FMoved then begin
+    FMoved := False;
+    History.AddState;
+  end;
 end;
 
 { TSelectionTool }

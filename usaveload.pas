@@ -10,13 +10,13 @@ interface
 
 uses
   Classes, SysUtils, UFigures, UAppState, typinfo, strutils;
-type
-  TExec = function: String of Object;
 
   procedure SaveFile(APath: String; AFigures: array of TFigure);
+  function GetSaveStr(var AFigures: TFigureArr): String;
   function FileLoad(APath: String; var AFigures: TFigureArr): Boolean;
-
+  procedure StringLoad(AString: String);
 implementation
+
 const
   FILE_SIGNATURE = '--VECTORGRAPHICSEDITOR--SAVEDIMAGE--';
   TypeKinds: TTypeKinds = tkAny;
@@ -105,15 +105,48 @@ begin
         end;
         write(OutFile, PropList^[j]^.Name +':'+ PropValue + ';');
       end;
-      Freemem(PropList);
       writeln(OutFile);
     end;
   finally
+    Freemem(PropList);
     Close(OutFile);
   end;
   SetFilePath(APath);
   SetAppStateNotModified;
   SetFileStateSaved;
+end;
+
+function GetSaveStr(var AFigures: TFigureArr): String;
+var
+  SaveStr: String;
+  i, j: Integer;
+  PropList: PPropList;
+  PropCount: Integer;
+  PropValue: String;
+  PropKind: TTypeKind;
+  PropParampKind: TTypeKind;
+  ParamProp: TObject;
+begin
+  SaveStr := '';
+  for i := Low(AFigures) to High(AFigures) do begin
+    PropCount := GetAllProps(AFigures[i], PropList);
+    SaveStr := Concat(SaveStr, AFigures[i].ClassName, ' ');
+    SaveStr := Concat(SaveStr, AFigures[i].GetStrCoord, ' ');
+    for j := 0 to PropCount - 1 do begin
+      PropKind := PropList^[j]^.PropType^.Kind;
+      case PropKind of
+        tkInteger: PropValue := IntToStr(GetInt64Prop(AFigures[i], PropList^[j]^.Name));
+        tkClass: begin
+          ParamProp := GetObjectProp(AFigures[i], PropList^[j]^.Name);
+          PropValue := GetPropValue(ParamProp, 'Value');
+        end;
+      end;
+      SaveStr := Concat(SaveStr, PropList^[j]^.Name +':'+ PropValue + ';');
+    end;
+    SaveStr := Concat(SaveStr, ' ');
+    FreeMem(PropList);
+  end;
+  Result := SaveStr;
 end;
 
 function FileLoad(APath: String; var AFigures: TFigureArr): Boolean;
@@ -152,6 +185,29 @@ begin
   SetAppStateNotModified;
   SetFileStateSaved;
   Exit(True);
+end;
+
+procedure StringLoad(AString: String);
+var
+  FigureClass, FigureCoords, FigureStrParams: String;
+  SplitedParams: TTwoDStrArr;
+  SplitedCoords: TTwoDStrArr;
+  i: Integer;
+begin
+  for i := Low(Figures) to High(Figures) do
+    FreeAndNil(Figures[i]);
+  Figures := nil;
+
+  while Length(AString) <> 0 do begin
+    FigureClass := Copy2SpaceDel(AString);
+    FigureCoords := Copy2SpaceDel(AString);
+    FigureStrParams := Copy2SpaceDel(AString);
+
+    SplitedCoords := SplitParams(FigureCoords);
+    SplitedParams := SplitParams(FigureStrParams);
+    SetLength(Figures, Length(Figures) + 1);
+    Figures[High(Figures)] := CreateFigure(FigureClass, SplitedCoords, SplitedParams);
+  end;
 end;
 
 end.
