@@ -16,10 +16,6 @@ type
   TParam = class
   public
     procedure Apply(ACanvas: TCanvas); virtual;
-    {TODO: стоит ли так делать?}
-    procedure SetValue(AValue: Integer); virtual;
-    procedure SetValue(ALineStyle: TFPPenStyle); virtual;
-    procedure SetValue(ABrushStyle: TFPBrushStyle); virtual;
     function GetIntValue: Integer; virtual; abstract;
     function Compare(AParam: TParam): Boolean; virtual; abstract;
   end;
@@ -32,7 +28,7 @@ type
   public
     property Width: Integer read FLineWidth write FLineWidth;
     procedure Apply(ACanvas: TCanvas); override;
-    procedure SetValue(AValue: Integer); override;
+    procedure SetValue(AValue: Integer);
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
   published
@@ -49,7 +45,7 @@ type
     property Style: TFPPenStyle read FLineStyle write FLineStyle;
     procedure Apply(ACanvas: TCanvas); override;
     function GetIntValue: Integer; override;
-    procedure SetValue(ALineStyle: TFPPenStyle); override;
+    procedure SetValue(ALineStyle: TFPPenStyle);
     function Compare(AParam: TParam): Boolean; override;
   published
     property Value: TFPPenStyle read FLineStyle write FLineStyle;
@@ -64,7 +60,7 @@ type
   public
     property Style: TFPBrushStyle read FBrushStyle write FBrushStyle;
     procedure Apply(ACanvas: TCanvas); override;
-    procedure SetValue(ABrushStyle: TFPBrushStyle); override;
+    procedure SetValue(ABrushStyle: TFPBrushStyle);
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
   published
@@ -79,7 +75,7 @@ type
     FCorners: Integer;
   public
     property Corners: Integer read FCorners write FCorners;
-    procedure SetValue(AValue: Integer); override;
+    procedure SetValue(AValue: Integer);
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
   published
@@ -93,7 +89,7 @@ type
   private
     FValue: Integer;
   public
-    procedure SetValue(AValue: Integer); override;
+    procedure SetValue(AValue: Integer);
     function GetIntValue: Integer; override;
     function Compare(AParam: TParam): Boolean; override;
   published
@@ -163,21 +159,6 @@ end;
 { TParam }
 
 procedure TParam.Apply(ACanvas: TCanvas);
-begin
-  //заглушка
-end;
-
-procedure TParam.SetValue(AValue: Integer);
-begin
-  //заглушка
-end;
-
-procedure TParam.SetValue(ALineStyle: TFPPenStyle);
-begin
-  //заглушка
-end;
-
-procedure TParam.SetValue(ABrushStyle: TFPBrushStyle);
 begin
   //заглушка
 end;

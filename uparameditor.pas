@@ -223,7 +223,7 @@ end;
 
 procedure TIntegerParamEditor.SetParam(AParam: TParam);
 begin
-  AParam.SetValue((FComponent as TSpinEdit).Value);
+  (AParam as TParamInteger).SetValue((FComponent as TSpinEdit).Value);
 end;
 
 function TIntegerParamEditor.GetParamType: TParamClass;
@@ -235,7 +235,7 @@ procedure TIntegerParamEditor.OnIntegerChange(Sender: TObject);
 var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
-    FParams[i].SetValue((Sender as TSpinEdit).Value);
+    (FParams[i] as TParamInteger).SetValue((Sender as TSpinEdit).Value);
   SetAppStateModified;
   FGControl.Invalidate;
 end;
@@ -266,7 +266,7 @@ end;
 
 procedure TCornersParamEdtitor.SetParam(AParam: TParam);
 begin
-  AParam.SetValue((FComponent as TSpinEdit).Value);
+  (AParam as TParamCorners).SetValue((FComponent as TSpinEdit).Value);
 end;
 
 function TCornersParamEdtitor.GetParamType: TParamClass;
@@ -278,7 +278,7 @@ procedure TCornersParamEdtitor.OnCornersNumberChange(Sender: TObject);
 var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
-    FParams[i].SetValue((Sender as TSpinEdit).Value);
+    (FParams[i] as TParamCorners).SetValue((Sender as TSpinEdit).Value);
   SetAppStateModified;
   FGControl.Invalidate;
 end;
@@ -336,7 +336,7 @@ end;
 
 procedure TBrushStyleParamEditor.SetParam(AParam: TParam);
 begin
-  AParam.SetValue(TFPBrushStyle((FComponent as TComboBox).ItemIndex));
+  (AParam as TParamBrushStyle).SetValue(TFPBrushStyle((FComponent as TComboBox).ItemIndex));
 end;
 
 function TBrushStyleParamEditor.GetParamType: TParamClass;
@@ -348,7 +348,7 @@ procedure TBrushStyleParamEditor.OnBrushStyleChange(Sender: TObject);
 var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
-    FParams[i].SetValue(TFPBrushStyle((Sender as TComboBox).ItemIndex));
+    (FParams[i] as TParamBrushStyle).SetValue(TFPBrushStyle((Sender as TComboBox).ItemIndex));
   SetAppStateModified;
   FGControl.Invalidate;
 end;
@@ -405,7 +405,7 @@ end;
 
 procedure TLineStyleParamEditor.SetParam(AParam: TParam);
 begin
-  AParam.SetValue(TFPPenStyle((FComponent as TComboBox).ItemIndex));
+  (AParam as TParamLineStyle).SetValue(TFPPenStyle((FComponent as TComboBox).ItemIndex));
 end;
 
 function TLineStyleParamEditor.GetParamType: TParamClass;
@@ -417,7 +417,7 @@ procedure TLineStyleParamEditor.OnLineStyleChange(Sender: TObject);
 var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
-    FParams[i].SetValue(TFPPenStyle((Sender as TComboBox).ItemIndex));
+    (FParams[i] as TParamLineStyle).SetValue(TFPPenStyle((Sender as TComboBox).ItemIndex));
   SetAppStateModified;
   FGControl.Invalidate;
 end;
@@ -487,7 +487,7 @@ end;
 
 procedure TLineWidthParamEditor.SetParam(AParam: TParam);
 begin
-  AParam.SetValue((FComponent as TSpinEdit).Value);
+  (AParam as TParamLineWidth).SetValue((FComponent as TSpinEdit).Value);
 end;
 
 function TLineWidthParamEditor.GetParamType: TParamClass;
@@ -499,7 +499,7 @@ procedure TLineWidthParamEditor.OnLineWidthChange(Sender: TObject);
 var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
-    FParams[i].SetValue((Sender as TSpinEdit).Value);
+    (FParams[i] as TParamLineWidth).SetValue((Sender as TSpinEdit).Value);
   SetAppStateModified;
   FGControl.Invalidate;
 end;

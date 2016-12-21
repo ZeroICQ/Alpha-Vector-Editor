@@ -1,35 +1,7 @@
 unit main;
 {Список вопросов:
- Почему FindClass возвращает TPersistent? Какой вообще смысл в этой функции?
- Можно ли избавиться от case в load?
-
- Почему падает при даблклике?
-
-
- procedure TForm1.FormCreate(Sender: TObject);
-begin
-  RegisterClasses([TButton, TForm]);
-end;
-
-
-procedure TForm1.Button1Click(Sender: TObject);
-var
-  CRef : TPersistentClass;
-  AControl : TControl;
-begin
-  CRef := GetClass('TButton');
-  if CRef<>nil then
-  begin
-     AControl := TControl(TControlClass(CRef).Create(Self));
-     with AControl do
-     begin
-        Parent := Self;
-        Width := 50;
-        Height := 30;
-     end;
-  end;
-end;
-
+ В чём разница между TFigure()
+ и class of TFIGURE()
  }
 {$mode objfpc}{$H+}
 
@@ -352,10 +324,10 @@ begin
     PaintBox.Invalidate;
   end;
   {DEBUG}
-  MouseXDspLabel.Caption := 'x: ' + FloatToStr(X);
+  {MouseXDspLabel.Caption := 'x: ' + FloatToStr(X);
   MouseYDspLabel.Caption := 'y: ' + FloatToStr(Y);
   MouseXWrldLabel.Caption := 'x: ' + FloatToStr(DispToWorldCoord(X,Y).X);
-  MouseYWrldLabel.Caption := 'y: ' + FloatToStr(DispToWorldCoord(X,Y).Y);
+  MouseYWrldLabel.Caption := 'y: ' + FloatToStr(DispToWorldCoord(X,Y).Y);}
 end;
 
 procedure TVectorEditor.PaintBoxMouseUp(Sender: TObject; Button: TMouseButton;
@@ -403,13 +375,13 @@ begin
   UpdateScale;
   SetScrollBarsPostions;
   {DEBUG}
-  OffsetXLabel.Caption := 'x: ' + FloatToStr(GetCanvasOffset.X);
+  {OffsetXLabel.Caption := 'x: ' + FloatToStr(GetCanvasOffset.X);
   OffsetYLabel.Caption := 'y: ' + FloatToStr(GetCanvasOffset.Y);
   ImageBoundsX.Caption := 'left: ' + FloatToStr(ImageBounds.Left);
   ImageBoundsY.Caption := 'top: ' + FloatToStr(ImageBounds.Top);
   ScrollbarMinLabel.Caption := 'Min: ' + IntToStr(HorizontalScrollBar.Min);
   ScrollbarMaxLabel.Caption := 'Max: ' + IntToStr(HorizontalScrollBar.Max);
-  ScrollbarPosLabel.Caption := 'Pos: ' + IntToStr(HorizontalScrollBar.Position);
+  ScrollbarPosLabel.Caption := 'Pos: ' + IntToStr(HorizontalScrollBar.Position);}
 end;
 
 procedure TVectorEditor.PaintBoxResize(Sender: TObject);

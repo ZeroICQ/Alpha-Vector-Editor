@@ -31,7 +31,7 @@ begin
   Result := PropCount;
 end;
 
-function CreateFigure(AClass: String; ACoords, AParams: TTwoDStrArr):  TFigure;
+function CreateFigure(AClassName: String; ACoords, AParams: TTwoDStrArr):  TFigure;
 var
   i: Integer;
   Figure: TFigure;
@@ -42,16 +42,7 @@ var
   PropKind: TTypeKind;
   ParamProp: TObject;
 begin
-  case AClass of
-    'TRectangle':      Figure := TRectangle.CreateEmptyProps(ACoords);
-    'TRoundRectangle': Figure := TRoundRectangle.CreateEmtpyProps(ACoords);
-    'TLine':           Figure := TLine.CreateEmtpyProps(ACoords);
-    'TPolyline':       Figure := TPolyline.CreateEmtpyProps(ACoords);
-    'TEllipse':        Figure := TEllipse.CreateEmptyProps(ACoords);
-    'TRegularPolygon': Figure := TRegularPolygon.CreateEmtpyProps(ACoords);
-  end;
-
-  //(Figure as TFigure).SetCoord(ACoords);
+  Figure := TFigureClass(FindClass(AClassName)).CreateFromCoords(ACoords);
   for i := Low(AParams) to High(AParams) do begin
     PropKind := GetPropInfo(Figure, AParams[i, 0])^.PropType^.Kind;
     case PropKind of
