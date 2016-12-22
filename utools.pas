@@ -246,7 +246,6 @@ end;
 
 procedure TMoveTool.MouseUp(AMousePos: TPoint);
 begin
-  History.AddState;
   if FMoved then begin
     FMoved := False;
     History.AddState;

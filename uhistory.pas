@@ -13,7 +13,7 @@ type
 
   TCircularBuffer = class
   private
-    FBuffer: array[1..10] of String;
+    FBuffer: array[1..30] of String;
     FFirst: Integer;
     FLast: Integer;
     FCurrent: Integer;
@@ -46,7 +46,7 @@ type
     procedure SetSaved;
     function IsModified: Boolean;
     procedure SetCaption;
-    constructor Create(AFirstState: String = '');
+    constructor Create;
     destructor Destroy; override;
   end;
 
@@ -158,10 +158,10 @@ begin
   Result := FBuffer.Current <> FBuffer.Saved;
 end;
 
-constructor THistory.Create(AFirstState: String);
+constructor THistory.Create;
 begin
   Inherited Create;
-  FBuffer := TCircularBuffer.Create(AFirstState);
+  FBuffer := TCircularBuffer.Create(GetSaveStr(Figures));
   SetCaption;
 end;
 

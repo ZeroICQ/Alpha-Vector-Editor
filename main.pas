@@ -551,8 +551,10 @@ end;
 
 procedure TVectorEditor.SaveFileActionExecute(Sender: TObject);
 begin
-  if GetFileState = fisSaved then
-    SaveFile(GetFilePath, Figures)
+  if GetFileState = fisSaved then begin
+    SaveFile(GetFilePath, Figures);
+    History.SetSaved;
+  end
   else
     SaveFileAsAction.Execute;
 end;
