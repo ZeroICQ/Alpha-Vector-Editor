@@ -112,7 +112,6 @@ begin
     Close(OutFile);
   end;
   SetFilePath(APath);
-  SetAppStateNotModified;
   SetFileStateSaved;
 end;
 
@@ -182,7 +181,6 @@ begin
     Close(InpFile);
   end;
   SetFilePath(APath);
-  SetAppStateNotModified;
   SetFileStateSaved;
   Exit(True);
 end;

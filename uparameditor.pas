@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, Controls, SysUtils, Graphics, UTransform, StdCtrls,
-  ExtCtrls, Spin, FPCanvas, UParameters, UAppState;
+  ExtCtrls, Spin, FPCanvas, UParameters, UAppState, UHistory;
 
 type
 
@@ -236,7 +236,8 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     (FParams[i] as TParamInteger).SetValue((Sender as TSpinEdit).Value);
-  SetAppStateModified;
+  History.AddState;
+  //SetAppStateModified;
   FGControl.Invalidate;
 end;
 
@@ -279,7 +280,8 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     (FParams[i] as TParamCorners).SetValue((Sender as TSpinEdit).Value);
-  SetAppStateModified;
+  History.AddState;
+  //SetAppStateModified;
   FGControl.Invalidate;
 end;
 
@@ -349,7 +351,8 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     (FParams[i] as TParamBrushStyle).SetValue(TFPBrushStyle((Sender as TComboBox).ItemIndex));
-  SetAppStateModified;
+  History.AddState;
+  //SetAppStateModified;
   FGControl.Invalidate;
 end;
 
@@ -418,7 +421,8 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     (FParams[i] as TParamLineStyle).SetValue(TFPPenStyle((Sender as TComboBox).ItemIndex));
-  SetAppStateModified;
+  History.AddState;
+  //SetAppStateModified;
   FGControl.Invalidate;
 end;
 
@@ -500,7 +504,8 @@ var i: Integer;
 begin
   for i := Low(FParams) to High(FParams) do
     (FParams[i] as TParamLineWidth).SetValue((Sender as TSpinEdit).Value);
-  SetAppStateModified;
+  History.AddState;
+  //SetAppStateModified;
   FGControl.Invalidate;
 end;
 

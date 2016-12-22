@@ -544,7 +544,7 @@ constructor TFigure.Create(APenColor: TColor);
 begin
   FPenColor := APenColor;
   CreateParams;
-  if Self.ClassType <> TSelection then SetAppStateModified;
+  //if Self.ClassType <> TSelection then SetAppStateModified;
 end;
 
 procedure TFigure.Draw(ACanvas: TCanvas);

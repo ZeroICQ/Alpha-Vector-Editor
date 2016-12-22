@@ -35,7 +35,7 @@ type
   { THistory }
 
   THistory = class
-  private
+  public//сделать private
     FBuffer: TCircularBuffer;
   public
     function CanBack: Boolean;
@@ -43,7 +43,9 @@ type
     procedure AddState;
     procedure SetPreviousState;
     procedure SetNextState;
-    procedure SaveFile;
+    procedure SetSaved;
+    function IsModified: Boolean;
+    procedure SetCaption;
     constructor Create(AFirstState: String = '');
     destructor Destroy; override;
   end;
@@ -123,32 +125,44 @@ begin
 end;
 
 procedure THistory.AddState;
-var
-  str: String;
 begin
-  str := GetSaveStr(Figures);
-  FBuffer.Push(str);
+  FBuffer.Push(GetSaveStr(Figures));
+  SetCaption;
 end;
 
 procedure THistory.SetPreviousState;
 begin
   StringLoad(FBuffer.RollBack);
+  SetCaption;
 end;
 
 procedure THistory.SetNextState;
 begin
   StringLoad(FBuffer.RollForward);
+  SetCaption;
 end;
 
-procedure THistory.SaveFile;
+procedure THistory.SetSaved;
 begin
   FBuffer.SetSaved;
+  SetCaption;
+end;
+
+procedure THistory.SetCaption;
+begin
+  UpdateCaption(IsModified);
+end;
+
+function THistory.IsModified: Boolean;
+begin
+  Result := FBuffer.Current <> FBuffer.Saved;
 end;
 
 constructor THistory.Create(AFirstState: String);
 begin
   Inherited Create;
   FBuffer := TCircularBuffer.Create(AFirstState);
+  SetCaption;
 end;
 
 destructor THistory.Destroy;

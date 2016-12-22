@@ -16,6 +16,7 @@ type
 
   { TVectorEditor }
   TVectorEditor = class(TForm)
+    ShowEverythigAction: TAction;
     Buffercaption: TLabel;
     BufferCurrent: TLabel;
     BufferStart: TLabel;
@@ -77,6 +78,7 @@ type
     VerticalScrollBar: TScrollBar;
     ToolPanel: TPanel;
     procedure AboutMenuItemClick(Sender: TObject);
+    procedure ShowEverythigActionExecute(Sender: TObject);
     procedure ClearFiguresExecute(Sender: TObject);
     procedure EditMenuItemClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -105,7 +107,6 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure SaveFileAsActionExecute(Sender: TObject);
     procedure ScaleFloatSpinEditChange(Sender: TObject);
-    procedure ShowEverythingMenuItemClick(Sender: TObject);
     procedure ToolClick(Sender: TObject);
     procedure CreateToolsButtons(ABtnWidth, ABtnHeight, AColsCount: Integer);
     procedure FillPalette;
@@ -312,7 +313,7 @@ procedure TVectorEditor.FormCreate(Sender: TObject);
 var
   BtnWidth, BtnHeight, ColsCount: Integer;
 begin
-  InitSaveLoad(Self);
+  InitAppState(Self);
   History := THistory.Create;
   RedoMenuItem.Enabled := History.CanForward;
   UndoMenuItem.Enabled := History.CanBack;
@@ -398,13 +399,17 @@ begin
   UpdateScale;
   SetScrollBarsPostions;
   {DEBUG}
-  {OffsetXLabel.Caption := 'x: ' + FloatToStr(GetCanvasOffset.X);
+  OffsetXLabel.Caption := 'x: ' + FloatToStr(GetCanvasOffset.X);
   OffsetYLabel.Caption := 'y: ' + FloatToStr(GetCanvasOffset.Y);
   ImageBoundsX.Caption := 'left: ' + FloatToStr(ImageBounds.Left);
   ImageBoundsY.Caption := 'top: ' + FloatToStr(ImageBounds.Top);
   ScrollbarMinLabel.Caption := 'Min: ' + IntToStr(HorizontalScrollBar.Min);
   ScrollbarMaxLabel.Caption := 'Max: ' + IntToStr(HorizontalScrollBar.Max);
-  ScrollbarPosLabel.Caption := 'Pos: ' + IntToStr(HorizontalScrollBar.Position);}
+  ScrollbarPosLabel.Caption := 'Pos: ' + IntToStr(HorizontalScrollBar.Position);
+  BufferCurrent.Caption := 'C: '+ IntToStr(History.FBuffer.Current);
+  BufferEnd.Caption := 'L: '+IntTostr(History.FBuffer.Last);
+  BufferStart.Caption := 'F: '+IntToStr(History.FBuffer.First);
+  BufferSaved.Caption := 'S: '+IntToStr(History.FBuffer.Saved);
 end;
 
 procedure TVectorEditor.PaintBoxResize(Sender: TObject);
@@ -458,7 +463,12 @@ begin
   PaintBox.Invalidate;
 end;
 
-procedure TVectorEditor.ShowEverythingMenuItemClick(Sender: TObject);
+procedure TVectorEditor.AboutMenuItemClick(Sender: TObject);
+begin
+  aboutprogram.aboutProgramForm.Show;
+end;
+
+procedure TVectorEditor.ShowEverythigActionExecute(Sender: TObject);
 const
   BorderMargin = 5;//px
 var
@@ -477,11 +487,6 @@ begin
     WorldToDispDimension(ImageBounds.Top) -
       (DispDimensions.Height - WorldToDispDimension(ImgWorldHeight)) / 2);
   PaintBox.Invalidate;
-end;
-
-procedure TVectorEditor.AboutMenuItemClick(Sender: TObject);
-begin
-  aboutprogram.aboutProgramForm.Show;
 end;
 
 procedure TVectorEditor.ClearFiguresExecute(Sender: TObject);
@@ -506,7 +511,7 @@ procedure TVectorEditor.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 var
   UserAnswer: Integer;
 begin
-  if GetAppState = apsModified then begin
+  if History.IsModified then begin
     UserAnswer := ShowWarningDialog;
     if UserAnswer = mrYes then SaveFileAction.Execute
     else if UserAnswer = mrNo then CanClose := True
@@ -520,22 +525,18 @@ var
   ImgWorldHeight: Double;
   UserAnswer: Integer;
 begin
-  if GetAppState = apsModified then begin
+  if History.IsModified then begin
     UserAnswer := ShowWarningDialog;
     if UserAnswer = mrYes then SaveFileAction.Execute
     else if UserAnswer = mrCancel then Exit;
   end;
   if OpenFileDialog.Execute then begin
     if FileLoad(OpenFileDialog.FileName, Figures) then begin
+      History.Free;
+      History := THistory.Create;
       RedefineImageBounds;
-      ImgWorldWidth := ImageBounds.Right - ImageBounds.Left;
-      ImgWorldHeight := ImageBounds.Bottom - ImageBounds.Top;
-      SetCanvasOffset(
-        WorldToDispDimension(ImageBounds.Left) -
-          (DispDimensions.Width - WorldToDispDimension(ImgWorldWidth)) / 2,
-        WorldToDispDimension(ImageBounds.Top) -
-          (DispDimensions.Height - WorldToDispDimension(ImgWorldHeight)) / 2);
-        Invalidate;
+      ShowEverythigAction.Execute;
+      PaintBox.Invalidate;
     end
     else
       ShowMessage('Неподдерижваемый формат');
@@ -562,6 +563,7 @@ begin
   SaveFileDialog.InitialDir := GetCurrentDir;
   if SaveFileDialog.Execute then begin
     SaveFile(SaveFileDialog.FileName, Figures);
+    History.SetSaved;
   end;
 
 end;

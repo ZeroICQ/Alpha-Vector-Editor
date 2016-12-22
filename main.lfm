@@ -432,8 +432,8 @@ object VectorEditor: TVectorEditor
         Caption = 'Сохранить как'
       end
       object ShowEverythingMenuItem: TMenuItem
+        Action = ShowEverythigAction
         Caption = 'Показать всё'
-        OnClick = ShowEverythingMenuItemClick
       end
       object ClearMenuItem: TMenuItem
         Action = ClearFigures
@@ -522,6 +522,10 @@ object VectorEditor: TVectorEditor
       Caption = 'Повтор'
       OnExecute = RedoActionExecute
       ShortCut = 16473
+    end
+    object ShowEverythigAction: TAction
+      Caption = 'ShowEverythigAction'
+      OnExecute = ShowEverythigActionExecute
     end
   end
   object SaveFileDialog: TSaveDialog
