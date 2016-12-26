@@ -187,6 +187,7 @@ object VectorEditor: TVectorEditor
     ClientWidth = 821
     ParentColor = False
     TabOrder = 3
+    Visible = False
     object OffsetXLabel: TLabel
       Left = 8
       Height = 15
