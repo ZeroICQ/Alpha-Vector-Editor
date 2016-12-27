@@ -35,7 +35,7 @@ type
   { THistory }
 
   THistory = class
-  public//сделать private
+  private
     FBuffer: TCircularBuffer;
   public
     function CanBack: Boolean;

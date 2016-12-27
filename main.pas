@@ -406,10 +406,6 @@ begin
   ScrollbarMinLabel.Caption := 'Min: ' + IntToStr(HorizontalScrollBar.Min);
   ScrollbarMaxLabel.Caption := 'Max: ' + IntToStr(HorizontalScrollBar.Max);
   ScrollbarPosLabel.Caption := 'Pos: ' + IntToStr(HorizontalScrollBar.Position);
-  BufferCurrent.Caption := 'C: '+ IntToStr(History.FBuffer.Current);
-  BufferEnd.Caption := 'L: '+IntTostr(History.FBuffer.Last);
-  BufferStart.Caption := 'F: '+IntToStr(History.FBuffer.First);
-  BufferSaved.Caption := 'S: '+IntToStr(History.FBuffer.Saved);
 end;
 
 procedure TVectorEditor.PaintBoxResize(Sender: TObject);
